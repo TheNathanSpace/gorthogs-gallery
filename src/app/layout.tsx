@@ -55,8 +55,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
+        <SkipLink />
         <Providers locale={locale}>
-          <SkipLink />
           <Suspense
             fallback={
               <div className="border-b border-gold/25 px-4 py-5 font-display text-xl text-gold">

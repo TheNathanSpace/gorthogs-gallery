@@ -45,8 +45,11 @@ export function ThemeToggle() {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-44">
-        <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={current} onValueChange={setTheme}>
+        <DropdownMenuRadioGroup
+          value={current}
+          onValueChange={(value) => setTheme(String(value))}
+        >
+          <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>
           {THEMES.map((value) => (
             <DropdownMenuRadioItem key={value} value={value}>
               {value === "system" ? (

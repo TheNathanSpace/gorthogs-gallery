@@ -1,14 +1,8 @@
-"use client"
-
-import { useT } from "@/components/i18n-provider"
+import { t } from "@/lib/i18n"
 
 export function SkipLink() {
-  const { t } = useT()
   return (
-    <a
-      href="#main-content"
-      className="skip-link"
-    >
+    <a href="#main-content" className="skip-link">
       {t("skipToContent")}
     </a>
   )
