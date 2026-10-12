@@ -37,9 +37,13 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The example compose file publishes port **3847**, caps the container at **1G** of RAM, and stores SQLite plus photographs in the `reliquary-data` volume. Sit this behind Caddy, Traefik, or nginx. TLS belongs on the proxy; this container speaks HTTP only.
+The example compose file publishes port **3847**, caps the container at **1G** of RAM, runs with a **read-only root filesystem** plus tmpfs `/tmp`, and stores SQLite plus photographs in the `reliquary-data` volume. Sit this behind Caddy, Traefik, or nginx. TLS belongs on the proxy; this container speaks HTTP only.
+
+The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing/placeholder or `ADMIN_PASSWORD` is still `changeme`. Set both in `.env` before `docker compose up`. If `PUBLIC_BASE_URL` is `https://…`, `AUTH_COOKIE_SECURE` must be `true` or startup fails the same way.
 
 Treat `mem_limit` carefully: too low and Docker kills the process mid-upload. A 3000×4000 photo is ~46 MiB uncompressed; 1G is the comfortable default and **512M is the floor** for 12MP uploads. Pixel count drives RAM, not file size. Measured numbers: [docs/memory.md](docs/memory.md).
+
+Liveness: `GET /api/health` (SQLite ping + readable disk). Readiness: `GET /api/ready` (same, plus a writable vault). Compose uses `/api/ready`.
 
 Point the proxy at `http://reliquary:3847` (or `127.0.0.1:3847`) and forward:
 
@@ -48,7 +52,7 @@ Point the proxy at `http://reliquary:3847` (or `127.0.0.1:3847`) and forward:
 
 Then set `AUTH_COOKIE_SECURE=true` so the session cookie is marked Secure.
 
-Health check: `GET /api/health`.
+Health check: `GET /api/ready` (Compose) or `GET /api/health` (liveness only).
 
 ### Restore or clone from the volume
 
@@ -92,6 +96,8 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | `AUTH_COOKIE_NAME` | `reliquary_session` | Session cookie name. |
 | `SESSION_TTL_SECONDS` | `604800` | Session lifetime (7 days). |
 | `DATA_DIR` | `./data` (`/data` in Docker) | SQLite database and uploaded media. |
+| `PUBLIC_BASE_URL` | unset | Canonical public origin (`https://minis.example.com`). Used for Open Graph, sitemap, and the HTTPS cookie check. |
+| `LOCALE` | `en` | UI language. English catalog ships first. Dates use `Intl` for this locale. |
 | `SITE_TITLE` | `The Reliquary` | Header and page titles. |
 | `SITE_TAGLINE` | `A vault of painted miniatures` | Subtitle and metadata description. |
 | `SEED_DEMO` | `true` | Seed labeled placeholder miniatures if the DB is empty. |
@@ -149,6 +155,16 @@ Set `SEED_DEMO=false` before the first start if you want an empty vault. Seeding
 
 Fonts, colors, and optional textures: see [docs/theming.md](docs/theming.md).
 
+### Image digest pinning (optional)
+
+Compose uses `image: reliquary:local` so `docker compose up --build` always rebuilds from this repo. To pin a published image:
+
+```bash
+docker image inspect reliquary:local --format '{{index .RepoDigests 0}}'
+```
+
+Then set `image: registry.example.com/reliquary@sha256:…` and drop `build:`. Do not commit a digest you have not verified.
+
 ## Stack
 
 Next.js 16 (App Router), TypeScript, Tailwind v4, shadcn/ui, Drizzle + better-sqlite3, Sharp, jose sessions. One Node process. No extra services.
@@ -160,6 +176,8 @@ npm run dev     # http://127.0.0.1:3847
 npm run build
 npm start
 npm run lint
+npm run typecheck
+npm test
 ```
 
 Implementation status and remaining work live in [docs/status.md](docs/status.md).

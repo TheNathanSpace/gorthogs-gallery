@@ -1,4 +1,5 @@
 import { SITE_TITLE } from "@/lib/config"
+import { t } from "@/lib/i18n"
 
 export function SiteFooter() {
   return (
@@ -8,7 +9,7 @@ export function SiteFooter() {
         <p className="font-display tracking-[0.2em] text-gold/70 uppercase">
           {SITE_TITLE}
         </p>
-        <p>A private vault of painted miniatures. Public to browse, locked to keep.</p>
+        <p>{t("footerTagline")}</p>
       </div>
     </footer>
   )

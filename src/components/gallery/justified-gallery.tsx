@@ -45,7 +45,7 @@ export function JustifiedGallery({
             <img
               src={item.thumbUrl}
               alt={item.alt}
-              className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
+              className="size-full object-cover motion-safe:transition motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]"
               loading={index < 20 ? "eager" : "lazy"}
               fetchPriority={index < 8 ? "high" : "low"}
               decoding="async"

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import { requireAdmin } from "@/lib/auth"
+import { t } from "@/lib/i18n"
 import {
   createMiniature,
   deleteMiniature,
@@ -34,10 +35,10 @@ export async function createMiniatureAction(
   await requireAdmin()
   const fields = readFields(formData)
   if (!fields.name || !fields.painterName) {
-    return { error: "A miniature needs a name and a painter." }
+    return { error: t("needsNamePainter") }
   }
   if (fields.sourceUrl && !isHttpUrl(fields.sourceUrl)) {
-    return { error: "Source URL must start with http:// or https://." }
+    return { error: t("sourceUrlHttp") }
   }
 
   const files = filesFrom(formData)
@@ -53,7 +54,7 @@ export async function createMiniatureAction(
     revalidatePath("/admin")
     redirect(`/miniatures/${created.slug}`)
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Could not create the entry." }
+    return { error: error instanceof Error ? error.message : t("createFailed") }
   }
 }
 
@@ -64,12 +65,12 @@ export async function updateMiniatureAction(
   await requireAdmin()
   const id = String(formData.get("id") ?? "")
   const fields = readFields(formData)
-  if (!id) return { error: "Missing miniature id." }
+  if (!id) return { error: t("missingId") }
   if (!fields.name || !fields.painterName) {
-    return { error: "A miniature needs a name and a painter." }
+    return { error: t("needsNamePainter") }
   }
   if (fields.sourceUrl && !isHttpUrl(fields.sourceUrl)) {
-    return { error: "Source URL must start with http:// or https://." }
+    return { error: t("sourceUrlHttp") }
   }
 
   const existingOrder = parseIdList(formData.get("existingOrder"))
@@ -89,7 +90,7 @@ export async function updateMiniatureAction(
     revalidatePath("/admin")
     redirect(`/miniatures/${updated.slug}`)
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Could not save the entry." }
+    return { error: error instanceof Error ? error.message : t("saveFailed") }
   }
 }
 

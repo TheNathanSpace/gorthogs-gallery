@@ -16,18 +16,20 @@ export function parseLibraryView(value?: string | null): LibraryViewMode {
     : "photos"
 }
 
-export function searchFieldLabel(field: SearchField): string {
+export function searchFieldMessageKey(
+  field: SearchField
+): "searchFieldAll" | "searchFieldName" | "searchFieldPainter" | "searchFieldSource" | "searchFieldNotes" {
   switch (field) {
     case "name":
-      return "Name"
+      return "searchFieldName"
     case "painter":
-      return "Painter"
+      return "searchFieldPainter"
     case "source":
-      return "Source"
+      return "searchFieldSource"
     case "notes":
-      return "Notes"
+      return "searchFieldNotes"
     default:
-      return "All fields"
+      return "searchFieldAll"
   }
 }
 

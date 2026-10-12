@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation"
 import { Images, LayoutGrid, Table2 } from "lucide-react"
 
+import { useT } from "@/components/i18n-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   SEARCH_FIELDS,
-  searchFieldLabel,
+  searchFieldMessageKey,
   type LibraryViewMode,
   type SearchField,
 } from "@/lib/search"
@@ -29,6 +30,7 @@ export function LibraryToolbar({
   photoCount: number
   miniatureCount: number
 }) {
+  const { t, plural } = useT()
   const router = useRouter()
   const filtered = Boolean(q)
 
@@ -37,12 +39,17 @@ export function LibraryToolbar({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="font-display text-[0.7rem] tracking-[0.32em] text-gold/80 uppercase">
-            The vault
+            {t("vaultEyebrow")}
           </p>
-          <h2 className="font-display text-3xl text-gold sm:text-4xl">Whole library</h2>
+          <h2 className="font-display text-3xl text-gold sm:text-4xl">{t("wholeLibrary")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {miniatureCount} miniature{miniatureCount === 1 ? "" : "s"} · {photoCount} photograph{photoCount === 1 ? "" : "s"}
-            {filtered ? " matching this search" : ""} · newest first
+            {t("libraryCounts", {
+              miniatures: miniatureCount,
+              miniaturesPlural: plural(miniatureCount),
+              photos: photoCount,
+              photosPlural: plural(photoCount),
+              matching: filtered ? t("matchingSearch") : "",
+            })}
           </p>
         </div>
         <form
@@ -51,7 +58,7 @@ export function LibraryToolbar({
         >
           <input type="hidden" name="view" value={view} />
           <label className="sr-only" htmlFor="field">
-            Search in
+            {t("searchIn")}
           </label>
           <select
             id="field"
@@ -61,18 +68,18 @@ export function LibraryToolbar({
           >
             {SEARCH_FIELDS.map((value) => (
               <option key={value} value={value}>
-                {searchFieldLabel(value)}
+                {t(searchFieldMessageKey(value))}
               </option>
             ))}
           </select>
           <Input
             name="q"
             defaultValue={q}
-            placeholder={placeholderFor(field)}
+            placeholder={placeholderFor(field, t)}
             className="h-9 min-w-0 bg-card/60 sm:w-72"
           />
           <Button type="submit" size="sm">
-            Seek
+            {t("seek")}
           </Button>
           {filtered ? (
             <Button
@@ -81,7 +88,7 @@ export function LibraryToolbar({
               variant="ghost"
               onClick={() => router.push(libraryHref({ view }))}
             >
-              Clear
+              {t("clear")}
             </Button>
           ) : null}
         </form>
@@ -92,7 +99,7 @@ export function LibraryToolbar({
           <FilterChip
             active={!filtered}
             href={libraryHref({ view })}
-            label="All painters"
+            label={t("allPainters")}
           />
           {painters.map((name) => (
             <FilterChip
@@ -110,7 +117,7 @@ export function LibraryToolbar({
               router.push(libraryHref({ view: "photos", q: q || undefined, field }))
             }
             icon={<Images data-icon="inline-start" />}
-            label="Photos"
+            label={t("photos")}
           />
           <ViewButton
             active={view === "collection"}
@@ -118,7 +125,7 @@ export function LibraryToolbar({
               router.push(libraryHref({ view: "collection", q: q || undefined, field }))
             }
             icon={<LayoutGrid data-icon="inline-start" />}
-            label="Miniatures"
+            label={t("miniatures")}
           />
           <ViewButton
             active={view === "table"}
@@ -126,7 +133,7 @@ export function LibraryToolbar({
               router.push(libraryHref({ view: "table", q: q || undefined, field }))
             }
             icon={<Table2 data-icon="inline-start" />}
-            label="Table"
+            label={t("table")}
           />
         </div>
       </div>
@@ -179,17 +186,17 @@ function FilterChip({
   )
 }
 
-function placeholderFor(field: SearchField): string {
+function placeholderFor(field: SearchField, t: ReturnType<typeof useT>["t"]): string {
   switch (field) {
     case "name":
-      return "Search by miniature name…"
+      return t("searchPlaceholderName")
     case "painter":
-      return "Search by painter…"
+      return t("searchPlaceholderPainter")
     case "source":
-      return "Search by source name or URL…"
+      return t("searchPlaceholderSource")
     case "notes":
-      return "Search notes…"
+      return t("searchPlaceholderNotes")
     default:
-      return "Search every field…"
+      return t("searchPlaceholderAll")
   }
 }

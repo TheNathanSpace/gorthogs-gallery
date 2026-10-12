@@ -1,6 +1,7 @@
 "use client"
 
 import { deleteMiniatureAction } from "@/app/actions/miniatures"
+import { useT } from "@/components/i18n-provider"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -22,29 +23,28 @@ export function DeleteMiniatureButton({
   slug: string
   name: string
 }) {
+  const { t } = useT()
   return (
     <AlertDialog>
       <AlertDialogTrigger
         render={
           <Button variant="destructive" size="sm">
-            Remove from vault
+            {t("removeFromVault")}
           </Button>
         }
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove {name}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            The entry and every photograph will be deleted from the vault. This cannot be undone.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("removeTitle", { name })}</AlertDialogTitle>
+          <AlertDialogDescription>{t("removeBody")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep it</AlertDialogCancel>
+          <AlertDialogCancel>{t("keepIt")}</AlertDialogCancel>
           <form action={deleteMiniatureAction}>
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="slug" value={slug} />
             <Button variant="destructive" type="submit">
-              Delete
+              {t("delete")}
             </Button>
           </form>
         </AlertDialogFooter>

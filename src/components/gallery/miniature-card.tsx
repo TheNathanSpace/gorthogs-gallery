@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { Badge } from "@/components/ui/badge"
+import { t, plural } from "@/lib/i18n"
 import type { MiniatureWithPhotos } from "@/lib/miniatures"
 import { coverOf, miniaturePath, photoUrl } from "@/lib/urls"
 
@@ -18,25 +19,32 @@ export function MiniatureCard({ miniature }: { miniature: MiniatureWithPhotos })
           <img
             src={photoUrl(cover.id, "thumb")}
             alt=""
-            className="size-full object-cover transition duration-500 group-hover:scale-[1.04]"
+            className="size-full object-cover motion-safe:transition motion-safe:duration-500 motion-safe:group-hover:scale-[1.04]"
           />
         ) : (
           <div className="flex size-full items-center justify-center bg-muted text-sm text-muted-foreground">
-            No photographs yet
+            {t("noPhotographsYet")}
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3">
           <h2 className="font-display text-lg leading-tight text-gold">
             {miniature.name}
           </h2>
-          <p className="text-xs text-foreground/80">Painted by {miniature.painterName}</p>
+          <p className="text-xs text-foreground/80">
+            {t("paintedBy", { painter: miniature.painterName })}
+          </p>
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 px-3 py-2">
         <span className="truncate text-xs text-muted-foreground">
-          {miniature.sourceName ?? "Source unrecorded"}
+          {miniature.sourceName ?? t("sourceUnrecorded")}
         </span>
-        <Badge variant="outline">{miniature.photos.length} plate{miniature.photos.length === 1 ? "" : "s"}</Badge>
+        <Badge variant="outline">
+          {t("plateCount", {
+            count: miniature.photos.length,
+            plural: plural(miniature.photos.length),
+          })}
+        </Badge>
       </div>
     </Link>
   )

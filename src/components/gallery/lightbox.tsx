@@ -1,12 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react"
 
+import { useT } from "@/components/i18n-provider"
 import { Button } from "@/components/ui/button"
 import type { GalleryPhoto } from "@/lib/types"
 import { miniaturePath, photoUrl } from "@/lib/urls"
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
 
 export function Lightbox({
   photos,
@@ -21,6 +25,8 @@ export function Lightbox({
   onChange: (id: string) => void
   showMiniatureLink?: boolean
 }) {
+  const { t, photoAlt } = useT()
+  const dialogRef = useRef<HTMLDivElement>(null)
   const index = Math.max(
     0,
     photos.findIndex((item) => item.id === activeId)
@@ -31,17 +37,40 @@ export function Lightbox({
 
   useEffect(() => {
     if (!photo) return
+    const root = dialogRef.current
+    const previously = document.activeElement as HTMLElement | null
+    const focusables = () =>
+      root
+        ? [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+            (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1
+          )
+        : []
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose()
       if (event.key === "ArrowLeft" && previous) onChange(previous.id)
       if (event.key === "ArrowRight" && next) onChange(next.id)
+      if (event.key === "Tab" && root) {
+        const items = focusables()
+        if (items.length === 0) return
+        const first = items[0]
+        const last = items[items.length - 1]
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener("keydown", onKey)
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
+    focusables()[0]?.focus()
     return () => {
       window.removeEventListener("keydown", onKey)
       document.body.style.overflow = previousOverflow
+      previously?.focus?.()
     }
   }, [onChange, onClose, photo, previous, next])
 
@@ -49,6 +78,7 @@ export function Lightbox({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={photo.miniatureName}
@@ -58,8 +88,10 @@ export function Lightbox({
         <div className="min-w-0">
           <p className="font-display truncate text-lg text-gold">{photo.miniatureName}</p>
           <p className="truncate text-sm text-muted-foreground">
-            Painted by {photo.painterName}
-            {photos.length > 1 ? ` · ${index + 1} of ${photos.length}` : null}
+            {t("paintedBy", { painter: photo.painterName })}
+            {photos.length > 1
+              ? ` · ${t("photoPosition", { current: index + 1, total: photos.length })}`
+              : null}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -70,14 +102,14 @@ export function Lightbox({
               nativeButton={false}
               render={<Link href={miniaturePath(photo.miniatureSlug)} />}
             >
-              Open entry
+              {t("openEntry")}
             </Button>
           ) : null}
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("close")}
           >
             <X />
           </Button>
@@ -90,7 +122,7 @@ export function Lightbox({
             type="button"
             className="absolute left-1 z-10 hidden rounded-full bg-black/40 p-2 text-gold hover:bg-black/70 sm:block"
             onClick={() => onChange(previous.id)}
-            aria-label="Previous photo"
+            aria-label={t("previousPhoto")}
           >
             <ChevronLeft className="size-7" />
           </button>
@@ -98,7 +130,7 @@ export function Lightbox({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photoUrl(photo.id, "display")}
-          alt={photo.miniatureName}
+          alt={photoAlt(photo.miniatureName, photo.painterName)}
           className="max-h-full max-w-full object-contain"
         />
         {photos.length > 1 ? (
@@ -106,7 +138,7 @@ export function Lightbox({
             type="button"
             className="absolute right-1 z-10 hidden rounded-full bg-black/40 p-2 text-gold hover:bg-black/70 sm:block"
             onClick={() => onChange(next.id)}
-            aria-label="Next photo"
+            aria-label={t("nextPhoto")}
           >
             <ChevronRight className="size-7" />
           </button>
@@ -130,7 +162,7 @@ export function Lightbox({
               <span>{photo.sourceName}</span>
             )
           ) : (
-            <span>No source recorded</span>
+            <span>{t("noSourceRecorded")}</span>
           )}
         </div>
         <a
@@ -139,7 +171,7 @@ export function Lightbox({
           target="_blank"
           rel="noreferrer"
         >
-          Full size
+          {t("fullSize")}
         </a>
       </div>
     </div>

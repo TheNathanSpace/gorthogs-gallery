@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 
 import { formatVaultDate } from "@/lib/dates"
+import { t } from "@/lib/i18n"
 import type { MiniatureWithPhotos } from "@/lib/miniatures"
 import { coverOf, miniaturePath, photoUrl } from "@/lib/urls"
 
@@ -12,14 +13,14 @@ export function LibraryTable({ miniatures }: { miniatures: MiniatureWithPhotos[]
         <table className="w-full min-w-[56rem] border-collapse text-left text-sm">
           <thead className="sticky top-0 z-10 bg-[color-mix(in_oklch,var(--card)_92%,black)] text-[0.7rem] tracking-[0.14em] text-gold uppercase">
             <tr className="border-b border-gold/25">
-              <th className="px-3 py-2 font-display font-normal">Plate</th>
-              <th className="px-3 py-2 font-display font-normal">Name</th>
-              <th className="px-3 py-2 font-display font-normal">Painter</th>
-              <th className="px-3 py-2 font-display font-normal">Source</th>
-              <th className="px-3 py-2 font-display font-normal">Notes</th>
-              <th className="px-3 py-2 font-display font-normal">Photos</th>
-              <th className="px-3 py-2 font-display font-normal">Entered</th>
-              <th className="px-3 py-2 font-display font-normal">Updated</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tablePlate")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tableName")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tablePainter")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tableSource")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tableNotes")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tablePhotos")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tableEntered")}</th>
+              <th className="px-3 py-2 font-display font-normal">{t("tableUpdated")}</th>
             </tr>
           </thead>
           <tbody>

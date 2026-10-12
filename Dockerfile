@@ -24,6 +24,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATA_DIR=/data
 ENV PORT=3847
 ENV HOSTNAME=0.0.0.0
+ENV HOME=/tmp
+ENV TMPDIR=/tmp
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs \
@@ -33,6 +35,7 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 
 USER nextjs
 EXPOSE 3847

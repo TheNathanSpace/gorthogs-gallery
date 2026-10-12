@@ -3,18 +3,20 @@
 import { useActionState } from "react"
 
 import { loginAction } from "@/app/actions/auth"
+import { useT } from "@/components/i18n-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export function LoginForm({ nextPath }: { nextPath: string }) {
+  const { t } = useT()
   const [state, action, pending] = useActionState(loginAction, undefined)
 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={nextPath} />
       <div className="space-y-1.5">
-        <Label htmlFor="username">Keeper name</Label>
+        <Label htmlFor="username">{t("keeperName")}</Label>
         <Input
           id="username"
           name="username"
@@ -24,7 +26,7 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="password">Vault key</Label>
+        <Label htmlFor="password">{t("vaultKey")}</Label>
         <Input
           id="password"
           name="password"
@@ -40,7 +42,7 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
         </p>
       ) : null}
       <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "Turning the key…" : "Open the ledger"}
+        {pending ? t("turningKey") : t("openLedger")}
       </Button>
     </form>
   )

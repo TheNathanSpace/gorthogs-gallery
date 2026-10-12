@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.night *, .high-contrast *, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -52,7 +52,7 @@
 }
 
 :root,
-.dark {
+.night {
   --background: oklch(0.17 0.025 55);
   --foreground: oklch(0.9 0.03 85);
   --card: oklch(0.23 0.03 58);
@@ -87,6 +87,87 @@
   --sidebar-accent-foreground: oklch(0.92 0.03 85);
   --sidebar-border: oklch(0.45 0.05 75 / 45%);
   --sidebar-ring: oklch(0.74 0.11 82);
+  --hall-glow: oklch(0.4 0.06 80 / 0.22);
+  --hall-forest: oklch(0.28 0.04 145 / 0.18);
+  --plate-fill: oklch(0.27 0.025 55);
+}
+
+.parchment {
+  --background: oklch(0.94 0.03 90);
+  --foreground: oklch(0.28 0.04 55);
+  --card: oklch(0.97 0.02 95);
+  --card-foreground: oklch(0.26 0.04 55);
+  --popover: oklch(0.97 0.02 95);
+  --popover-foreground: oklch(0.26 0.04 55);
+  --primary: oklch(0.52 0.1 72);
+  --primary-foreground: oklch(0.98 0.02 95);
+  --secondary: oklch(0.82 0.05 145);
+  --secondary-foreground: oklch(0.25 0.04 145);
+  --muted: oklch(0.9 0.025 90);
+  --muted-foreground: oklch(0.45 0.04 60);
+  --accent: oklch(0.88 0.04 80);
+  --accent-foreground: oklch(0.28 0.04 55);
+  --destructive: oklch(0.5 0.16 25);
+  --border: oklch(0.72 0.05 75 / 55%);
+  --input: oklch(0.8 0.04 80 / 60%);
+  --ring: oklch(0.52 0.1 72);
+  --gold: oklch(0.48 0.11 72);
+  --gold-foreground: oklch(0.98 0.02 95);
+  --chart-1: oklch(0.52 0.1 72);
+  --chart-2: oklch(0.45 0.08 145);
+  --chart-3: oklch(0.5 0.08 40);
+  --chart-4: oklch(0.45 0.06 250);
+  --chart-5: oklch(0.4 0.05 25);
+  --sidebar: oklch(0.92 0.03 90);
+  --sidebar-foreground: oklch(0.28 0.04 55);
+  --sidebar-primary: oklch(0.52 0.1 72);
+  --sidebar-primary-foreground: oklch(0.98 0.02 95);
+  --sidebar-accent: oklch(0.88 0.04 80);
+  --sidebar-accent-foreground: oklch(0.28 0.04 55);
+  --sidebar-border: oklch(0.72 0.05 75 / 55%);
+  --sidebar-ring: oklch(0.52 0.1 72);
+  --hall-glow: oklch(0.85 0.06 80 / 0.45);
+  --hall-forest: oklch(0.78 0.04 145 / 0.2);
+  --plate-fill: oklch(0.9 0.03 85);
+}
+
+.high-contrast {
+  --background: oklch(0.08 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.1 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.95 0.12 95);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.2 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.18 0 0);
+  --muted-foreground: oklch(0.86 0 0);
+  --accent: oklch(0.22 0 0);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.72 0.2 25);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.85 0 0);
+  --ring: oklch(0.95 0.12 95);
+  --gold: oklch(0.95 0.12 95);
+  --gold-foreground: oklch(0.1 0 0);
+  --chart-1: oklch(0.95 0.12 95);
+  --chart-2: oklch(0.85 0 0);
+  --chart-3: oklch(0.75 0 0);
+  --chart-4: oklch(0.65 0 0);
+  --chart-5: oklch(0.55 0 0);
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.95 0.12 95);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.2 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.95 0.12 95);
+  --hall-glow: transparent;
+  --hall-forest: transparent;
+  --plate-fill: oklch(0.14 0 0);
 }
 
 @layer base {
@@ -102,16 +183,20 @@
     @apply bg-background text-foreground antialiased;
     background-color: var(--background);
     background-image:
-      linear-gradient(180deg, oklch(0.2 0.03 60 / 0.35), transparent 28%),
-      radial-gradient(ellipse at 12% -10%, oklch(0.4 0.06 80 / 0.22), transparent 46%),
-      radial-gradient(ellipse at 90% 120%, oklch(0.28 0.04 145 / 0.18), transparent 42%),
+      linear-gradient(180deg, color-mix(in oklch, var(--background) 70%, transparent), transparent 28%),
+      radial-gradient(ellipse at 12% -10%, var(--hall-glow), transparent 46%),
+      radial-gradient(ellipse at 90% 120%, var(--hall-forest), transparent 42%),
       url("/theme/grain.svg");
     background-attachment: fixed;
     background-size: auto, auto, auto, 280px 280px;
   }
 
+  html.high-contrast body {
+    background-image: none;
+  }
+
   ::selection {
-    background: oklch(0.74 0.11 82 / 0.35);
+    background: color-mix(in oklch, var(--gold) 35%, transparent);
   }
 }
 
@@ -124,22 +209,58 @@
   background: linear-gradient(
     90deg,
     transparent,
-    oklch(0.78 0.12 82 / 0.15) 12%,
-    oklch(0.78 0.12 82 / 0.75) 50%,
-    oklch(0.78 0.12 82 / 0.15) 88%,
+    color-mix(in oklch, var(--gold) 15%, transparent) 12%,
+    color-mix(in oklch, var(--gold) 75%, transparent) 50%,
+    color-mix(in oklch, var(--gold) 15%, transparent) 88%,
     transparent
   );
 }
 
 .vault-frame {
   box-shadow:
-    inset 0 0 0 1px oklch(0.78 0.12 82 / 0.22),
-    0 18px 40px oklch(0.1 0.02 50 / 0.45);
+    inset 0 0 0 1px color-mix(in oklch, var(--gold) 22%, transparent),
+    0 18px 40px color-mix(in oklch, var(--background) 55%, black);
 }
 
 .photo-plate {
-  background: oklch(0.27 0.025 55);
+  background: var(--plate-fill);
   box-shadow:
-    0 0 0 1px oklch(0.78 0.12 82 / 0.18),
-    0 10px 24px oklch(0.08 0.02 50 / 0.5);
+    0 0 0 1px color-mix(in oklch, var(--gold) 18%, transparent),
+    0 10px 24px color-mix(in oklch, var(--background) 40%, black);
+}
+
+html.high-contrast .vault-frame,
+html.high-contrast .photo-plate {
+  box-shadow: inset 0 0 0 2px var(--foreground);
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 0.35rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

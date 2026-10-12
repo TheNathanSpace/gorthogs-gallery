@@ -5,6 +5,7 @@ import { useCallback } from "react"
 
 import { JustifiedGallery } from "@/components/gallery/justified-gallery"
 import { Lightbox } from "@/components/gallery/lightbox"
+import { useT } from "@/components/i18n-provider"
 import type { GalleryPhoto } from "@/lib/types"
 import { miniaturePath, photoUrl } from "@/lib/urls"
 
@@ -17,6 +18,7 @@ export function DetailGallery({
   slug: string
   activePhotoId?: string
 }) {
+  const { photoAlt } = useT()
   const router = useRouter()
   const setPhoto = useCallback(
     (id?: string) => {
@@ -35,7 +37,7 @@ export function DetailGallery({
           height: photo.height,
           thumbUrl: photoUrl(photo.id, "thumb"),
           displayUrl: photoUrl(photo.id, "display"),
-          alt: photo.originalFilename,
+          alt: photoAlt(photo.miniatureName, photo.painterName),
         }))}
         targetRowHeight={280}
         onSelect={(item) => setPhoto(item.id)}

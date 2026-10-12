@@ -1,6 +1,8 @@
 # Container memory
 
-Compose sets `mem_limit: 1g`. Treat that number as a sharp knife: **too low and Docker SIGKILLs the process mid-upload**, leaving a half-written photo on disk. Too high just sits unused.
+Compose sets `mem_limit: 1g`, `read_only: true`, and tmpfs `/tmp`. Treat the memory number as a sharp knife: **too low and Docker SIGKILLs the process mid-upload**, leaving a half-written photo on disk. Too high just sits unused.
+
+The only persistent writes are the `/data` volume. Sharp and Next.js use `/tmp`. Do not drop the tmpfs.
 
 Pixel count drives decode RAM, not file size. The 20 MB upload cap does not bound how large a JPEG can be in pixels.
 

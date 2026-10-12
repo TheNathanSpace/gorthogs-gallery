@@ -10,6 +10,7 @@ import {
   credentialsMatch,
   establishSession,
 } from "@/lib/auth"
+import { t } from "@/lib/i18n"
 
 export type LoginState = { error?: string } | undefined
 
@@ -29,11 +30,11 @@ export async function loginAction(
     "local"
 
   if (!allowLoginAttempt(ip)) {
-    return { error: "Too many attempts. Wait a few minutes and try the vault key again." }
+    return { error: t("tooManyAttempts") }
   }
 
   if (!credentialsMatch(username, password)) {
-    return { error: "The vault does not recognize that name or key." }
+    return { error: t("badCredentials") }
   }
 
   clearLoginAttempts(ip)

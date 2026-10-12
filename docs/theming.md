@@ -31,7 +31,13 @@ A more ornamental title face (Cinzel Decorative, Unifraktur, etc.) works for the
 
 ## Colors
 
-Tokens live in `src/app/globals.css` under `:root, .dark`. The skin is always dark.
+Tokens live in `src/app/globals.css`. Three skins ship, with a header toggle and `prefers-color-scheme` as the default (`system` → Night or Parchment):
+
+| Class | Skin |
+| --- | --- |
+| `.night` | Walnut hall (dark). Default when the OS prefers dark. |
+| `.parchment` | Cream paper, dark ink. Default when the OS prefers light. |
+| `.high-contrast` | Near-black / near-white, 2px borders, no grain overlay. |
 
 | Token | Role |
 | --- | --- |
@@ -62,7 +68,7 @@ Keep overlays subtle; photographs should stay the focus.
 
 Site name and tagline are environment variables (`SITE_TITLE`, `SITE_TAGLINE`), not hardcoded in components besides defaults in `src/lib/config.ts`.
 
-In-app phrases (Keeper, ledger, vault, plates) live in the React trees under `src/components` and `src/app`. Search for `vault` / `ledger` / `Keeper` if you want plainer language.
+In-app phrases (Keeper, ledger, vault, plates) live in `src/lib/messages.ts`. Set `LOCALE` (default `en`) to pick a catalog. English ships first.
 
 ## Photographs
 

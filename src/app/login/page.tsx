@@ -3,6 +3,7 @@ import { Suspense } from "react"
 
 import { LoginForm } from "@/components/admin/login-form"
 import { getSession } from "@/lib/auth"
+import { t } from "@/lib/i18n"
 
 export default function LoginPage({
   searchParams,
@@ -12,8 +13,11 @@ export default function LoginPage({
   return (
     <Suspense
       fallback={
-        <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12 text-muted-foreground">
-          Opening the keeper&apos;s door…
+        <main
+          id="main-content"
+          className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12 text-muted-foreground"
+        >
+          {t("openingDoor")}
         </main>
       }
     >
@@ -33,15 +37,16 @@ async function Login({
   if (session) redirect(dest)
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
+    <main
+      id="main-content"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12"
+    >
       <div className="vault-frame rounded-md bg-card/80 p-6">
         <p className="font-display text-[0.7rem] tracking-[0.32em] text-gold/80 uppercase">
-          Keeper&apos;s door
+          {t("keepersDoor")}
         </p>
-        <h1 className="font-display mt-1 text-3xl text-gold">Sign in</h1>
-        <p className="mt-2 mb-6 text-sm text-muted-foreground">
-          One account keeps the ledger. Visitors do not need a key to browse.
-        </p>
+        <h1 className="font-display mt-1 text-3xl text-gold">{t("signIn")}</h1>
+        <p className="mt-2 mb-6 text-sm text-muted-foreground">{t("loginIntro")}</p>
         <LoginForm nextPath={dest} />
       </div>
     </main>

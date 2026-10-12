@@ -29,7 +29,7 @@ export default function Home({
   }>
 }) {
   return (
-    <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6">
+    <main id="main-content" className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6">
       <Suspense fallback={<GallerySkeleton />}>
         <Library searchParams={searchParams} />
       </Suspense>

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { JustifiedGallery } from "@/components/gallery/justified-gallery"
 import { Lightbox } from "@/components/gallery/lightbox"
+import { useT } from "@/components/i18n-provider"
 import type { SearchField } from "@/lib/search"
 import type { GalleryPhoto } from "@/lib/types"
 import { libraryHref, photoUrl } from "@/lib/urls"
@@ -30,6 +31,7 @@ export function LibraryView({
   q?: string
   field: SearchField
 }) {
+  const { t, photoAlt } = useT()
   const router = useRouter()
   const [photos, setPhotos] = useState(() => initialPhotos.map(revive))
   const [cursor, setCursor] = useState(initialCursor)
@@ -49,7 +51,7 @@ export function LibraryView({
       if (q) params.set("q", q)
       if (field && field !== "all") params.set("field", field)
       const response = await fetch(`/api/library/photos?${params.toString()}`)
-      if (!response.ok) throw new Error("The next shelf could not be fetched.")
+      if (!response.ok) throw new Error(t("nextShelfError"))
       const data = (await response.json()) as {
         photos: Array<GalleryPhoto & { createdAt: string }>
         nextCursor: string | null
@@ -61,12 +63,12 @@ export function LibraryView({
       })
       setCursor(data.nextCursor)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not load more plates.")
+      setError(cause instanceof Error ? cause.message : t("loadMoreError"))
     } finally {
       loadingRef.current = false
       setLoading(false)
     }
-  }, [cursor, q, field])
+  }, [cursor, q, field, t])
 
   useEffect(() => {
     const el = sentinelRef.current
@@ -99,8 +101,11 @@ export function LibraryView({
           height: photo.height,
           thumbUrl: photoUrl(photo.id, "thumb"),
           displayUrl: photoUrl(photo.id, "display"),
-          alt: `${photo.miniatureName}, painted by ${photo.painterName}`,
-          caption: `${photo.miniatureName} · ${photo.painterName}`,
+          alt: photoAlt(photo.miniatureName, photo.painterName),
+          caption: t("photoCaption", {
+            name: photo.miniatureName,
+            painter: photo.painterName,
+          }),
         }))}
         targetRowHeight={210}
         onSelect={(item) => setPhoto(item.id)}
@@ -108,7 +113,7 @@ export function LibraryView({
       <div ref={sentinelRef} className="h-8" />
       {loading ? (
         <p className="py-4 text-center text-sm text-muted-foreground">
-          Fetching older plates…
+          {t("fetchingOlder")}
         </p>
       ) : null}
       {error ? (
@@ -119,13 +124,13 @@ export function LibraryView({
             className="mt-2 text-sm text-gold hover:underline"
             onClick={() => void loadMore()}
           >
-            Try again
+            {t("tryAgain")}
           </button>
         </div>
       ) : null}
       {!cursor && photos.length > 0 ? (
         <p className="py-3 text-center text-xs text-muted-foreground">
-          End of the vault
+          {t("endOfVault")}
         </p>
       ) : null}
       {activePhotoId ? (

@@ -2,20 +2,22 @@ import Link from "next/link"
 import { KeyRound, ScrollText } from "lucide-react"
 
 import { logoutAction } from "@/app/actions/auth"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { isAdmin } from "@/lib/auth"
 import { SITE_TAGLINE, SITE_TITLE } from "@/lib/config"
+import { t } from "@/lib/i18n"
 
 export async function SiteHeader() {
   const admin = await isAdmin()
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gold/25 bg-[color-mix(in_oklch,var(--background)_88%,black)]/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-gold/25 bg-[color-mix(in_oklch,var(--background)_88%,transparent)]/85 backdrop-blur-md">
       <div className="ornament-rule" />
       <div className="mx-auto flex w-full max-w-[1600px] items-center gap-3 px-4 py-3 sm:px-6">
         <Link href="/" className="group min-w-0 flex-1">
           <p className="font-display text-[0.65rem] tracking-[0.35em] text-gold/80 uppercase">
-            Painted host
+            {t("paintedHost")}
           </p>
           <h1 className="font-display truncate text-xl leading-tight text-gold sm:text-2xl">
             {SITE_TITLE}
@@ -27,8 +29,9 @@ export async function SiteHeader() {
         <nav className="flex shrink-0 items-center gap-1.5">
           <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/" />}>
             <ScrollText data-icon="inline-start" />
-            Library
+            {t("library")}
           </Button>
+          <ThemeToggle />
           {admin ? (
             <>
               <Button
@@ -37,11 +40,11 @@ export async function SiteHeader() {
                 nativeButton={false}
                 render={<Link href="/admin" />}
               >
-                Ledger
+                {t("ledger")}
               </Button>
               <form action={logoutAction}>
                 <Button variant="ghost" size="sm" type="submit">
-                  Sign out
+                  {t("signOut")}
                 </Button>
               </form>
             </>
@@ -53,7 +56,7 @@ export async function SiteHeader() {
               render={<Link href="/login" />}
             >
               <KeyRound data-icon="inline-start" />
-              Keeper
+              {t("keeper")}
             </Button>
           )}
         </nav>

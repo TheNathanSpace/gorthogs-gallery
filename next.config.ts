@@ -1,5 +1,7 @@
 import type { NextConfig } from "next"
 
+import { securityHeaders } from "./src/lib/security-headers"
+
 const nextConfig: NextConfig = {
   output: "standalone",
   cacheComponents: true,
@@ -15,6 +17,14 @@ const nextConfig: NextConfig = {
             .filter(Boolean)
         : undefined,
     },
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ]
   },
   turbopack: {
     rules: {

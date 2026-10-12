@@ -8,6 +8,7 @@ import {
   updateMiniatureAction,
   type MutationState,
 } from "@/app/actions/miniatures"
+import { useT } from "@/components/i18n-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,6 +34,7 @@ export function MiniatureForm({
     photos: Photo[]
   }
 }) {
+  const { t } = useT()
   const action = mode === "create" ? createMiniatureAction : updateMiniatureAction
   const [state, formAction, pending] = useActionState<MutationState, FormData>(
     action,
@@ -94,7 +96,7 @@ export function MiniatureForm({
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Miniature name" htmlFor="name">
+        <Field label={t("fieldName")} htmlFor="name">
           <Input
             id="name"
             name="name"
@@ -103,7 +105,7 @@ export function MiniatureForm({
             className="h-9 bg-background/60"
           />
         </Field>
-        <Field label="Painter" htmlFor="painterName">
+        <Field label={t("fieldPainter")} htmlFor="painterName">
           <Input
             id="painterName"
             name="painterName"
@@ -112,16 +114,16 @@ export function MiniatureForm({
             className="h-9 bg-background/60"
           />
         </Field>
-        <Field label="Online source name" htmlFor="sourceName">
+        <Field label={t("fieldSourceName")} htmlFor="sourceName">
           <Input
             id="sourceName"
             name="sourceName"
             defaultValue={miniature?.sourceName ?? ""}
-            placeholder="MyMiniFactory, Patreon, official range…"
+            placeholder={t("sourceNamePlaceholder")}
             className="h-9 bg-background/60"
           />
         </Field>
-        <Field label="Online source URL" htmlFor="sourceUrl">
+        <Field label={t("fieldSourceUrl")} htmlFor="sourceUrl">
           <Input
             id="sourceUrl"
             name="sourceUrl"
@@ -133,22 +135,20 @@ export function MiniatureForm({
         </Field>
       </div>
 
-      <Field label="Notes" htmlFor="notes">
+      <Field label={t("fieldNotes")} htmlFor="notes">
         <Textarea
           id="notes"
           name="notes"
           defaultValue={miniature?.notes ?? ""}
-          placeholder="Paint recipes, scale, lighting notes — optional."
+          placeholder={t("notesPlaceholder")}
           className="bg-background/60"
         />
       </Field>
 
       <div className="space-y-3">
         <div>
-          <Label htmlFor="photos">Photographs</Label>
-          <p className="mt-1 text-xs text-muted-foreground">
-            JPEG, PNG, or WebP. Mark a cover plate for the collection view. Drop replacements in here any time.
-          </p>
+          <Label htmlFor="photos">{t("fieldPhotos")}</Label>
+          <p className="mt-1 text-xs text-muted-foreground">{t("photosHelp")}</p>
         </div>
         <Input
           id="photos"
@@ -216,10 +216,10 @@ export function MiniatureForm({
 
       <Button type="submit" disabled={pending}>
         {pending
-          ? "Inscribing…"
+          ? t("inscribing")
           : mode === "create"
-            ? "Enter into the vault"
-            : "Save changes"}
+            ? t("enterVault")
+            : t("saveChanges")}
       </Button>
     </form>
   )
@@ -261,6 +261,7 @@ function Plate({
   onLeft: () => void
   onRight: () => void
 }) {
+  const { t } = useT()
   return (
     <div
       className={cn(
@@ -275,7 +276,7 @@ function Plate({
         <div className="flex flex-wrap gap-1">
           <Button type="button" size="xs" variant={isCover ? "default" : "outline"} onClick={onCover}>
             <Star data-icon="inline-start" />
-            Cover
+            {t("cover")}
           </Button>
           <Button type="button" size="xs" variant="outline" onClick={onLeft}>
             <ArrowLeft />

@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server"
 
 import { SITE_TITLE } from "@/lib/config"
-import { ensureDb } from "@/lib/db"
+import { probeLive } from "@/lib/health"
 
 export async function GET() {
-  try {
-    await ensureDb()
-    return NextResponse.json({ ok: true, site: SITE_TITLE })
-  } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "unhealthy",
-      },
-      { status: 500 }
-    )
-  }
+  const probe = await probeLive()
+  return NextResponse.json(
+    { ...probe, site: SITE_TITLE },
+    { status: probe.ok ? 200 : 503 }
+  )
 }

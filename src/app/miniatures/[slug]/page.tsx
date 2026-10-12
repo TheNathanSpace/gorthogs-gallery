@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { ExternalLink, Pencil } from "lucide-react"
+import type { Metadata } from "next"
 
 import { DeleteMiniatureButton } from "@/components/admin/delete-miniature-button"
 import { DetailGallery } from "@/components/gallery/detail-gallery"
@@ -9,8 +10,40 @@ import { GallerySkeleton } from "@/components/gallery/gallery-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { isAdmin } from "@/lib/auth"
+import { SITE_TITLE } from "@/lib/config"
+import { t, plural } from "@/lib/i18n"
 import { getMiniatureBySlug } from "@/lib/miniatures"
-import { photoUrl } from "@/lib/urls"
+import { absoluteUrl } from "@/lib/site-url"
+import { coverOf, photoUrl } from "@/lib/urls"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const miniature = await getMiniatureBySlug(slug)
+  if (!miniature) return { title: t("shelfEmpty") }
+  const description = t("paintedBy", { painter: miniature.painterName })
+  const cover = coverOf(miniature.photos)
+  const image = cover ? absoluteUrl(photoUrl(cover.id, "display")) : undefined
+  return {
+    title: miniature.name,
+    description,
+    openGraph: {
+      title: `${miniature.name} · ${SITE_TITLE}`,
+      description,
+      type: "article",
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: miniature.name,
+      description,
+      images: image ? [image] : undefined,
+    },
+  }
+}
 
 export default function MiniaturePage({
   params,
@@ -20,7 +53,13 @@ export default function MiniaturePage({
   searchParams: Promise<{ photo?: string }>
 }) {
   return (
-    <Suspense fallback={<div className="flex-1 px-4 py-8"><GallerySkeleton /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex-1 px-4 py-8">
+          <GallerySkeleton />
+        </div>
+      }
+    >
       <Detail params={params} searchParams={searchParams} />
     </Suspense>
   )
@@ -48,21 +87,31 @@ async function Detail({
   }))
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6">
+    <main
+      id="main-content"
+      className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6"
+    >
       <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,0.9fr)] lg:items-end">
         <div>
           <p className="font-display text-[0.7rem] tracking-[0.32em] text-gold/80 uppercase">
-            Miniature
+            {t("miniatureEyebrow")}
           </p>
           <h1 className="font-display mt-1 text-4xl text-gold sm:text-5xl">{miniature.name}</h1>
           <p className="mt-3 text-lg">
-            Painted by <span className="text-gold">{miniature.painterName}</span>
+            {t("paintedBy", { painter: miniature.painterName })}
           </p>
         </div>
         <div className="vault-frame space-y-3 rounded-md bg-card/75 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{miniature.photos.length} photograph{miniature.photos.length === 1 ? "" : "s"}</Badge>
-            {miniature.sourceName ? <Badge variant="secondary">{miniature.sourceName}</Badge> : null}
+            <Badge variant="outline">
+              {t("photographCount", {
+                count: miniature.photos.length,
+                plural: plural(miniature.photos.length),
+              })}
+            </Badge>
+            {miniature.sourceName ? (
+              <Badge variant="secondary">{miniature.sourceName}</Badge>
+            ) : null}
           </div>
           {miniature.sourceUrl ? (
             <a
@@ -71,11 +120,11 @@ async function Detail({
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-sm text-gold hover:underline"
             >
-              Online source
+              {t("onlineSource")}
               <ExternalLink className="size-3.5" />
             </a>
           ) : (
-            <p className="text-sm text-muted-foreground">No source URL recorded.</p>
+            <p className="text-sm text-muted-foreground">{t("noSourceUrl")}</p>
           )}
           {admin ? (
             <div className="flex flex-wrap gap-2 pt-1">
@@ -85,7 +134,7 @@ async function Detail({
                 render={<Link href={`/admin/miniatures/${miniature.id}/edit`} />}
               >
                 <Pencil data-icon="inline-start" />
-                Edit
+                {t("edit")}
               </Button>
               <DeleteMiniatureButton
                 id={miniature.id}
@@ -104,7 +153,7 @@ async function Detail({
       ) : null}
 
       {miniature.photos.length === 0 ? (
-        <p className="text-muted-foreground">No photographs have been hung for this miniature yet.</p>
+        <p className="text-muted-foreground">{t("noPhotographsHung")}</p>
       ) : (
         <DetailGallery
           photos={galleryPhotos}
@@ -115,8 +164,11 @@ async function Detail({
 
       {miniature.photos.length > 0 ? (
         <p className="mt-4 text-xs text-muted-foreground">
-          Original files remain available from the lightbox “Full size” link
-          {miniature.photos[0] ? ` (example: ${photoUrl(miniature.photos[0].id, "original")}).` : "."}
+          {t("originalHint", {
+            example: miniature.photos[0]
+              ? ` (example: ${photoUrl(miniature.photos[0].id, "original")}).`
+              : ".",
+          })}
         </p>
       ) : null}
     </main>
