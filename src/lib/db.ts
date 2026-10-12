@@ -44,6 +44,8 @@ function migrate(sqlite: Database.Database) {
 
     CREATE INDEX IF NOT EXISTS photos_miniature_id_idx ON photos(miniature_id);
     CREATE INDEX IF NOT EXISTS miniatures_painter_idx ON miniatures(painter_name);
+    CREATE INDEX IF NOT EXISTS photos_created_at_idx ON photos(created_at, id);
+    CREATE INDEX IF NOT EXISTS miniatures_created_at_idx ON miniatures(created_at);
   `)
 }
 

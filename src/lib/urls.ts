@@ -1,3 +1,4 @@
+import type { LibraryViewMode, SearchField } from "@/lib/search"
 import type { Photo } from "@/lib/schema"
 
 export function photoUrl(
@@ -12,15 +13,15 @@ export function miniaturePath(slug: string): string {
 }
 
 export function libraryHref(opts?: {
-  view?: "photos" | "collection"
+  view?: LibraryViewMode
   q?: string
-  painter?: string
+  field?: SearchField
   photo?: string
 }): string {
   const params = new URLSearchParams()
   if (opts?.view && opts.view !== "photos") params.set("view", opts.view)
+  if (opts?.field && opts.field !== "all") params.set("field", opts.field)
   if (opts?.q) params.set("q", opts.q)
-  if (opts?.painter) params.set("painter", opts.painter)
   if (opts?.photo) params.set("photo", opts.photo)
   const qs = params.toString()
   return qs ? `/?${qs}` : "/"

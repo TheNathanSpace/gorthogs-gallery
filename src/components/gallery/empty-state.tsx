@@ -19,7 +19,7 @@ export function EmptyState({
       </h2>
       <p className="mt-3 text-sm text-muted-foreground">
         {filtered
-          ? "Clear the search or pick another painter to see the rest of the host."
+          ? "Clear the search, switch the field, or pick another painter to see the rest of the host."
           : isAdmin
             ? "Create the first miniature from the ledger. Name, painter, source, and photographs will appear here."
             : "The keeper has not entered any miniatures yet. Return once the first plates are hung."}

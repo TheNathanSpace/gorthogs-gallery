@@ -1,12 +1,13 @@
 # Status
 
-Last updated: 2026-10-12
+Last updated: 2026-10-12 (search, table, infinite scroll)
 
 ## Current state
 
 The first complete slice is implemented and intended to be runnable:
 
-- Public justified photo library and miniature collection view
+- Public justified photo library (newest first, infinite scroll), miniature cards, and a dense table
+- Keyword search with field scope (all / name / painter / source / notes)
 - Miniature detail pages with full-size lightbox
 - Single-admin session (env username/password, signed httpOnly cookie)
 - Create / edit / delete miniatures and photographs
@@ -22,8 +23,10 @@ The first complete slice is implemented and intended to be runnable:
 | --- | --- |
 | Per-miniature name, painter, online source, pictures | Done |
 | Detailed views with full-size images | Done (lightbox + `/media/.../original`) |
-| Wide whole-library views | Done (justified Photos wall + Miniatures grid) |
-| Google Photos-like browsing | Done (dense rows, lightbox, keyboard, shareable `?photo=` ) |
+| Wide whole-library views | Done (Photos wall, Miniatures grid, dense Table) |
+| Google Photos-like browsing | Done (dense rows, newest first, infinite scroll, lightbox, `?photo=`) |
+| Keyword search with field narrowing | Done (`q` + `field`) |
+| Dense table of all entry data | Done (`?view=table`) |
 | Simple one-account admin login | Done |
 | Public browse without accounts | Done |
 | Admin can create entries | Done (edit/delete included so the ledger is usable) |
@@ -50,6 +53,10 @@ The first complete slice is implemented and intended to be runnable:
 
 ## Todos / later
 
+- [x] Keyword search with per-field scope
+- [x] Dense table view of every entry
+- [x] Newest photographs at the top of the wall
+- [x] Infinite scroll on the photo library
 - [ ] Drag-and-drop reorder in the admin photo strip (buttons work today)
 - [ ] Touch swipe on the lightbox
 - [ ] Optional public RSS / JSON feed of new entries

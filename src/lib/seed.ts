@@ -125,6 +125,147 @@ const DEMO: SeedMiniature[] = [
   },
 ]
 
+const EXTRA: Array<{
+  id: string
+  name: string
+  painterName: string
+  sourceName: string
+  sourceUrl: string
+  hue: number
+  silhouette: SeedPhoto["silhouette"]
+  notes: string
+}> = [
+  {
+    id: "seed-ironfen",
+    name: "Ironfen Ranger",
+    painterName: "Mira Thorne",
+    sourceName: "Hollowfen STL pack",
+    sourceUrl: "https://www.myminifactory.com/",
+    hue: 130,
+    silhouette: "knight",
+    notes: "Placeholder. Green cloak contrast against the iron greaves.",
+  },
+  {
+    id: "seed-cinder",
+    name: "Cinder Acolyte",
+    painterName: "Kael Voss",
+    sourceName: "Ashen Choir",
+    sourceUrl: "https://www.patreon.com/",
+    hue: 25,
+    silhouette: "mage",
+    notes: "Placeholder. Embers on the censer, soot on the hem.",
+  },
+  {
+    id: "seed-brine",
+    name: "Brinewake Corsair",
+    painterName: "Liora Quill",
+    sourceName: "Salt & Sail",
+    sourceUrl: "https://www.thingiverse.com/",
+    hue: 200,
+    silhouette: "knight",
+    notes: "Placeholder. Salt-white highlights on teal cloth.",
+  },
+  {
+    id: "seed-moor",
+    name: "Moorland Beast",
+    painterName: "Kael Voss",
+    sourceName: "Wilds of Bracken",
+    sourceUrl: "https://www.myminifactory.com/",
+    hue: 85,
+    silhouette: "dragon",
+    notes: "Placeholder. Muddy tufts, wet-blend the hide.",
+  },
+  {
+    id: "seed-gilded",
+    name: "Gilded Reliquarist",
+    painterName: "Liora Quill",
+    sourceName: "Cathedral of Dust",
+    sourceUrl: "https://www.games-workshop.com/",
+    hue: 50,
+    silhouette: "mage",
+    notes: "Placeholder. True metallic gold, scratched back with brown-black.",
+  },
+  {
+    id: "seed-nightpetal",
+    name: "Nightpetal Witch",
+    painterName: "Mira Thorne",
+    sourceName: "Hedge-walkers",
+    sourceUrl: "https://www.patreon.com/",
+    hue: 295,
+    silhouette: "mage",
+    notes: "Placeholder. Violet-black robes, pollen yellow on the staff.",
+  },
+  {
+    id: "seed-bastion",
+    name: "Bastion Warden",
+    painterName: "Oren Hale",
+    sourceName: "Walls of Vell",
+    sourceUrl: "https://www.myminifactory.com/",
+    hue: 35,
+    silhouette: "knight",
+    notes: "Placeholder. Stone-grey plate, a single red oath-ribbon.",
+  },
+  {
+    id: "seed-skyshadow",
+    name: "Skyshadow Drake",
+    painterName: "Oren Hale",
+    sourceName: "Aerie prints",
+    sourceUrl: "https://www.cults3d.com/",
+    hue: 230,
+    silhouette: "dragon",
+    notes: "Placeholder. Cool rim light along the wing membranes.",
+  },
+  {
+    id: "seed-thresh",
+    name: "Thresh-cult Thrall",
+    painterName: "Liora Quill",
+    sourceName: "Harvest Moon STLs",
+    sourceUrl: "https://www.patreon.com/",
+    hue: 70,
+    silhouette: "generic",
+    notes: "Placeholder. Sickle steel and dried-grain yellows.",
+  },
+  {
+    id: "seed-lantern-hound",
+    name: "Lantern Hound",
+    painterName: "Kael Voss",
+    sourceName: "Last Lantern companions",
+    sourceUrl: "https://www.games-workshop.com/",
+    hue: 40,
+    silhouette: "generic",
+    notes: "Placeholder. OSL from the lantern onto the muzzle.",
+  },
+]
+
+DEMO.push(
+  ...EXTRA.map((entry) => ({
+    id: entry.id,
+    slug: entry.id.replace("seed-", ""),
+    name: entry.name,
+    painterName: entry.painterName,
+    sourceName: entry.sourceName,
+    sourceUrl: entry.sourceUrl,
+    notes: entry.notes,
+    photos: [
+      {
+        filename: `${entry.id}-hero.png`,
+        width: 1200,
+        height: 1600,
+        hue: entry.hue,
+        silhouette: entry.silhouette,
+        cover: true,
+      },
+      {
+        filename: `${entry.id}-detail.png`,
+        width: 1600,
+        height: 1100,
+        hue: entry.hue - 8,
+        silhouette: entry.silhouette,
+      },
+    ],
+  }))
+)
+
 export async function seedDemoIfEmpty(
   db: BetterSQLite3Database<typeof import("@/lib/schema")>
 ) {
@@ -132,8 +273,9 @@ export async function seedDemoIfEmpty(
   const existing = db.select({ id: miniatures.id }).from(miniatures).get()
   if (existing) return
 
-  const now = new Date()
-  for (const entry of DEMO) {
+  const newest = Date.now()
+  for (const [miniIndex, entry] of DEMO.entries()) {
+    const createdAt = new Date(newest - miniIndex * 8 * 60 * 60 * 1000)
     db.insert(miniatures)
       .values({
         id: entry.id,
@@ -143,8 +285,8 @@ export async function seedDemoIfEmpty(
         sourceName: entry.sourceName,
         sourceUrl: entry.sourceUrl,
         notes: entry.notes,
-        createdAt: now,
-        updatedAt: now,
+        createdAt,
+        updatedAt: createdAt,
       } satisfies typeof miniatures.$inferInsert)
       .run()
 
@@ -183,7 +325,7 @@ export async function seedDemoIfEmpty(
           height: photo.height,
           sortOrder: index,
           isCover: Boolean(photo.cover),
-          createdAt: now,
+          createdAt: new Date(createdAt.getTime() - index * 60 * 1000),
         })
         .run()
     }

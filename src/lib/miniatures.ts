@@ -1,11 +1,16 @@
 import "server-only"
 
-import { and, asc, desc, eq, inArray, like, or } from "drizzle-orm"
+import { and, asc, desc, eq, inArray, like, lt, or, sql } from "drizzle-orm"
 import { connection } from "next/server"
 
 import { ensureDb, getDb } from "@/lib/db"
 import { deletePhotoFiles, processUpload, writePhotoFiles } from "@/lib/images"
 import { miniatures, photos, type Miniature, type Photo } from "@/lib/schema"
+import {
+  likeNeedle,
+  PHOTO_PAGE_SIZE,
+  type SearchField,
+} from "@/lib/search"
 import { slugify } from "@/lib/slug"
 import type { GalleryPhoto } from "@/lib/types"
 
@@ -28,24 +33,66 @@ export async function listPainters(): Promise<string[]> {
   return rows.map((row) => row.painterName)
 }
 
-export async function listMiniatures(filters?: {
+export type LibraryFilters = {
   q?: string
-  painter?: string
-}): Promise<MiniatureWithPhotos[]> {
+  field?: SearchField
+}
+
+export async function listMiniatures(
+  filters?: LibraryFilters
+): Promise<MiniatureWithPhotos[]> {
   const db = await ready()
   const where = whereFilters(filters)
   const rows = where
-    ? db.select().from(miniatures).where(where).orderBy(desc(miniatures.updatedAt)).all()
-    : db.select().from(miniatures).orderBy(desc(miniatures.updatedAt)).all()
+    ? db.select().from(miniatures).where(where).orderBy(desc(miniatures.createdAt)).all()
+    : db.select().from(miniatures).orderBy(desc(miniatures.createdAt)).all()
   return attachPhotos(rows)
 }
 
-export async function listGalleryPhotos(filters?: {
-  q?: string
-  painter?: string
-}): Promise<GalleryPhoto[]> {
+export async function countMiniatures(filters?: LibraryFilters): Promise<number> {
   const db = await ready()
   const where = whereFilters(filters)
+  const query = db.select({ n: sql<number>`count(*)` }).from(miniatures)
+  const row = where ? query.where(where).get() : query.get()
+  return Number(row?.n ?? 0)
+}
+
+export async function countGalleryPhotos(filters?: LibraryFilters): Promise<number> {
+  const db = await ready()
+  const where = whereFilters(filters)
+  const query = db
+    .select({ n: sql<number>`count(*)` })
+    .from(photos)
+    .innerJoin(miniatures, eq(photos.miniatureId, miniatures.id))
+  const row = where ? query.where(where).get() : query.get()
+  return Number(row?.n ?? 0)
+}
+
+export type PhotoPage = {
+  photos: GalleryPhoto[]
+  nextCursor: string | null
+}
+
+export async function listGalleryPhotosPage(
+  filters?: LibraryFilters & { cursor?: string; limit?: number }
+): Promise<PhotoPage> {
+  const db = await ready()
+  const limit = Math.min(Math.max(filters?.limit ?? PHOTO_PAGE_SIZE, 1), 60)
+  const clauses = []
+  const search = whereFilters(filters)
+  if (search) clauses.push(search)
+  const decoded = decodePhotoCursor(filters?.cursor)
+  if (decoded) {
+    const created = new Date(decoded.createdAt)
+    clauses.push(
+      or(
+        lt(photos.createdAt, created),
+        and(eq(photos.createdAt, created), lt(photos.id, decoded.id))
+      )
+    )
+  }
+  const where = clauses.length === 0 ? undefined : clauses.length === 1 ? clauses[0] : and(...clauses)
+
   const query = db
     .select({
       photo: photos,
@@ -57,17 +104,36 @@ export async function listGalleryPhotos(filters?: {
     })
     .from(photos)
     .innerJoin(miniatures, eq(photos.miniatureId, miniatures.id))
-    .orderBy(desc(miniatures.updatedAt), asc(photos.sortOrder))
+    .orderBy(desc(photos.createdAt), desc(photos.id))
+    .limit(limit + 1)
 
   const rows = where ? query.where(where).all() : query.all()
-  return rows.map((row) => ({
-    ...row.photo,
-    miniatureName: row.miniatureName,
-    miniatureSlug: row.miniatureSlug,
-    painterName: row.painterName,
-    sourceName: row.sourceName,
-    sourceUrl: row.sourceUrl,
-  }))
+  const hasMore = rows.length > limit
+  const page = hasMore ? rows.slice(0, limit) : rows
+  const mapped = page.map(mapGalleryRow)
+  const last = mapped[mapped.length - 1]
+  return {
+    photos: mapped,
+    nextCursor: hasMore && last ? encodePhotoCursor(last) : null,
+  }
+}
+
+export async function getGalleryPhotoById(id: string): Promise<GalleryPhoto | null> {
+  const db = await ready()
+  const row = db
+    .select({
+      photo: photos,
+      miniatureName: miniatures.name,
+      miniatureSlug: miniatures.slug,
+      painterName: miniatures.painterName,
+      sourceName: miniatures.sourceName,
+      sourceUrl: miniatures.sourceUrl,
+    })
+    .from(photos)
+    .innerJoin(miniatures, eq(photos.miniatureId, miniatures.id))
+    .where(eq(photos.id, id))
+    .get()
+  return row ? mapGalleryRow(row) : null
 }
 
 export async function getMiniatureBySlug(
@@ -215,24 +281,61 @@ export async function deleteMiniature(id: string): Promise<void> {
   }
 }
 
-function whereFilters(filters?: { q?: string; painter?: string }) {
-  const clauses = []
-  if (filters?.painter) {
-    clauses.push(eq(miniatures.painterName, filters.painter))
+function mapGalleryRow(row: {
+  photo: Photo
+  miniatureName: string
+  miniatureSlug: string
+  painterName: string
+  sourceName: string | null
+  sourceUrl: string | null
+}): GalleryPhoto {
+  return {
+    ...row.photo,
+    miniatureName: row.miniatureName,
+    miniatureSlug: row.miniatureSlug,
+    painterName: row.painterName,
+    sourceName: row.sourceName,
+    sourceUrl: row.sourceUrl,
   }
-  if (filters?.q) {
-    const needle = `%${filters.q.replaceAll("%", "")}%`
-    clauses.push(
-      or(
+}
+
+function encodePhotoCursor(photo: Pick<Photo, "id" | "createdAt">): string {
+  return `${photo.createdAt.getTime()}:${photo.id}`
+}
+
+function decodePhotoCursor(cursor?: string): { createdAt: number; id: string } | null {
+  if (!cursor) return null
+  const sep = cursor.indexOf(":")
+  if (sep <= 0) return null
+  const createdAt = Number(cursor.slice(0, sep))
+  const id = cursor.slice(sep + 1)
+  if (!id || !Number.isFinite(createdAt)) return null
+  return { createdAt, id }
+}
+
+function whereFilters(filters?: LibraryFilters) {
+  const q = filters?.q?.trim()
+  if (!q) return undefined
+  const needle = likeNeedle(q)
+  const field = filters?.field ?? "all"
+  switch (field) {
+    case "name":
+      return like(miniatures.name, needle)
+    case "painter":
+      return like(miniatures.painterName, needle)
+    case "source":
+      return or(like(miniatures.sourceName, needle), like(miniatures.sourceUrl, needle))
+    case "notes":
+      return like(miniatures.notes, needle)
+    default:
+      return or(
         like(miniatures.name, needle),
         like(miniatures.painterName, needle),
         like(miniatures.sourceName, needle),
+        like(miniatures.sourceUrl, needle),
         like(miniatures.notes, needle)
       )
-    )
   }
-  if (clauses.length === 0) return undefined
-  return clauses.length === 1 ? clauses[0] : and(...clauses)
 }
 
 function attachPhotos(rows: Miniature[]): MiniatureWithPhotos[] {

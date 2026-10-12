@@ -6,8 +6,10 @@ The library is deliberately Google Photos-like: a wide justified photo wall, a g
 
 ## What you get
 
-- Public library of every photograph, justified into rows
+- Public library of every photograph, justified into rows, newest first, infinite scroll
 - Collection view of miniature cards (cover plate, name, painter)
+- Dense table of every miniature and its data
+- Keyword search scoped to all fields, name, painter, source, or notes
 - Detail page per miniature with metadata and a large gallery
 - Lightbox with keyboard arrows, original-file download, and source link
 - Single admin login (username/password from environment variables)
@@ -75,11 +77,12 @@ openssl rand -base64 48
 
 ## Using it
 
-1. Browse `/` — Photos wall or Miniatures collection, search, painter chips.
-2. Click a plate for the lightbox (Esc / arrows). **Open entry** goes to the miniature page.
-3. Sign in at `/login` (Keeper). `/admin` is the ledger.
-4. **New miniature** — name, painter, optional source name/URL, notes, photographs. Star a cover plate.
-5. Edit later to reorder, replace, or delete photographs.
+1. Browse `/` — Photos wall (newest first, infinite scroll), Miniatures cards, or the dense Table.
+2. Search any keyword and narrow the field (All / Name / Painter / Source / Notes). Painter chips are a shortcut for `Painter`.
+3. Click a plate for the lightbox (Esc / arrows). **Open entry** goes to the miniature page.
+4. Sign in at `/login` (Keeper). `/admin` is the ledger.
+5. **New miniature** — name, painter, optional source name/URL, notes, photographs. Star a cover plate.
+6. Edit later to reorder, replace, or delete photographs.
 
 Visitors never see the login unless they open `/login`.
 
