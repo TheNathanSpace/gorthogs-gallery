@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises"
+import { eq } from "drizzle-orm"
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3"
 import sharp from "sharp"
 
@@ -235,6 +236,86 @@ const EXTRA: Array<{
     silhouette: "generic",
     notes: "Placeholder. OSL from the lantern onto the muzzle.",
   },
+  {
+    id: "seed-ashwalker",
+    name: "Ashwalker Initiate",
+    painterName: "Oren Hale",
+    sourceName: "Cinder road STLs",
+    sourceUrl: "https://www.myminifactory.com/",
+    hue: 22,
+    silhouette: "knight",
+    notes: "Placeholder. Dusty reds, cracked-earth base.",
+  },
+  {
+    id: "seed-vowpriest",
+    name: "Vowpriest of the Vein",
+    painterName: "Mira Thorne",
+    sourceName: "Reliquary clergy",
+    sourceUrl: "https://www.patreon.com/",
+    hue: 350,
+    silhouette: "mage",
+    notes: "Placeholder. Bone ivory and dried-blood glazes.",
+  },
+  {
+    id: "seed-mire-toad",
+    name: "Mire Toad",
+    painterName: "Kael Voss",
+    sourceName: "Bogkin beasts",
+    sourceUrl: "https://www.thingiverse.com/",
+    hue: 110,
+    silhouette: "generic",
+    notes: "Placeholder. Wet-blend olive to rot-yellow.",
+  },
+  {
+    id: "seed-copper-golem",
+    name: "Copper Golem",
+    painterName: "Liora Quill",
+    sourceName: "Foundry constructs",
+    sourceUrl: "https://www.cults3d.com/",
+    hue: 45,
+    silhouette: "generic",
+    notes: "Placeholder. Verdigris in the recesses, bright copper on the edges.",
+  },
+  {
+    id: "seed-frost-witch",
+    name: "Frost Witch of Vell",
+    painterName: "Mira Thorne",
+    sourceName: "Winter court",
+    sourceUrl: "https://www.patreon.com/",
+    hue: 215,
+    silhouette: "mage",
+    notes: "Placeholder. Ice-blue OSL, grey-white fur.",
+  },
+  {
+    id: "seed-dune-raider",
+    name: "Dune Raider",
+    painterName: "Oren Hale",
+    sourceName: "Sun-scoured hosts",
+    sourceUrl: "https://www.myminifactory.com/",
+    hue: 55,
+    silhouette: "knight",
+    notes: "Placeholder. Sand-scoured metal, cloth in faded magenta.",
+  },
+  {
+    id: "seed-grave-choir",
+    name: "Grave Choir Chanter",
+    painterName: "Liora Quill",
+    sourceName: "Catacomb hymns",
+    sourceUrl: "https://www.games-workshop.com/",
+    hue: 270,
+    silhouette: "mage",
+    notes: "Placeholder. Muted purples, bone dust drybrush.",
+  },
+  {
+    id: "seed-oak-warden",
+    name: "Oak Warden",
+    painterName: "Kael Voss",
+    sourceName: "Greenway patrol",
+    sourceUrl: "https://www.myminifactory.com/",
+    hue: 140,
+    silhouette: "knight",
+    notes: "Placeholder. Bark browns, moss greens, a single gold leaf.",
+  },
 ]
 
 DEMO.push(
@@ -270,11 +351,16 @@ export async function seedDemoIfEmpty(
   db: BetterSQLite3Database<typeof import("@/lib/schema")>
 ) {
   if (!SEED_DEMO) return
-  const existing = db.select({ id: miniatures.id }).from(miniatures).get()
-  if (existing) return
 
   const newest = Date.now()
   for (const [miniIndex, entry] of DEMO.entries()) {
+    const already = db
+      .select({ id: miniatures.id })
+      .from(miniatures)
+      .where(eq(miniatures.id, entry.id))
+      .get()
+    if (already) continue
+
     const createdAt = new Date(newest - miniIndex * 8 * 60 * 60 * 1000)
     db.insert(miniatures)
       .values({

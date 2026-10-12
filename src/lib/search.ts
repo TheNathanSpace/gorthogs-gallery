@@ -4,7 +4,7 @@ export type SearchField = (typeof SEARCH_FIELDS)[number]
 export const LIBRARY_VIEWS = ["photos", "collection", "table"] as const
 export type LibraryViewMode = (typeof LIBRARY_VIEWS)[number]
 
-export const PHOTO_PAGE_SIZE = 24
+export const PHOTO_PAGE_SIZE = 32
 
 export function parseSearchField(value?: string | null): SearchField {
   return SEARCH_FIELDS.includes(value as SearchField) ? (value as SearchField) : "all"

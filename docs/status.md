@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (search, table, infinite scroll)
+Last updated: 2026-10-12 (newest-first wall paints immediately; infinite scroll)
 
 ## Current state
 
