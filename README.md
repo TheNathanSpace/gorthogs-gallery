@@ -22,12 +22,12 @@ Placeholder miniatures are seeded on first boot so the vault is not empty. They 
 
 ```bash
 cp .env.example .env.local
-# edit AUTH_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD
+# edit AUTH_SECRET
 npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:3847](http://127.0.0.1:3847). Sign in at `/login` with the admin credentials. Data lands in `./data`.
+Open [http://127.0.0.1:3847](http://127.0.0.1:3847). Sign in at `/login` as `admin` with vault key `changeme`, then choose a lasting key. Data lands in `./data`.
 
 ## Docker
 
@@ -39,7 +39,15 @@ docker compose up --build
 
 The example compose file publishes port **3847**, caps the container at **1G** of RAM, runs with a **read-only root filesystem** plus tmpfs `/tmp`, and stores SQLite plus photographs in the `reliquary-data` volume. Sit this behind Caddy, Traefik, or nginx. TLS belongs on the proxy; this container speaks HTTP only.
 
-The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing/placeholder or `ADMIN_PASSWORD` is still `changeme`. Set both in `.env` before `docker compose up`. If `PUBLIC_BASE_URL` is `https://…`, `AUTH_COOKIE_SECURE` must be `true` or startup fails the same way.
+The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder. Set it in `.env` before `docker compose up`. If `PUBLIC_BASE_URL` is `https://…`, `AUTH_COOKIE_SECURE` must be `true` or startup fails the same way.
+
+The keeper password is **not** in compose. First login is `admin` / `changeme`; the next screen stores a scrypt hash in the vault volume. A volume clone copies that hash. To reset a forgotten key (vault idle):
+
+```bash
+sqlite3 ./data/reliquary.sqlite "UPDATE keepers SET password_hash = NULL;"
+```
+
+Then sign in with `changeme` and choose a new key.
 
 Treat `mem_limit` carefully: too low and Docker kills the process mid-upload. A 3000×4000 photo is ~46 MiB uncompressed; 1G is the comfortable default and **512M is the floor** for 12MP uploads. Pixel count drives RAM, not file size. Measured numbers: [docs/memory.md](docs/memory.md).
 
@@ -81,7 +89,7 @@ docker run --rm \
 docker compose up -d
 ```
 
-Keeper username/password, `AUTH_SECRET`, and site title are container environment, not vault data. A content clone does not copy those; set them on the new compose stack. The public library comes up from the volume alone.
+`AUTH_SECRET`, keeper username, and site title are container environment. The keeper **password hash** lives in the vault with the photographs, so a volume clone keeps the same key. The public library comes up from the volume alone.
 
 Do not copy `/data` while the container is writing. `docker compose stop` first.
 
@@ -91,7 +99,6 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | --- | --- | --- |
 | `AUTH_SECRET` | (dev fallback) | **Required in production.** Signs the admin session. |
 | `ADMIN_USERNAME` | `admin` | The only login name. |
-| `ADMIN_PASSWORD` | `changeme` | The only login password. |
 | `AUTH_COOKIE_SECURE` | `false` | Set `true` when served over HTTPS. |
 | `AUTH_COOKIE_NAME` | `reliquary_session` | Session cookie name. |
 | `SESSION_TTL_SECONDS` | `604800` | Session lifetime (7 days). |
@@ -119,7 +126,7 @@ openssl rand -base64 48
 1. Browse `/` — Photos wall (newest first, infinite scroll), Miniatures cards, or the dense Table.
 2. Search any keyword and narrow the field (All / Name / Painter / Source / Notes). Painter chips are a shortcut for `Painter`.
 3. Click a plate for the lightbox (Esc / arrows). **Open entry** goes to the miniature page.
-4. Sign in at `/login` (Keeper). `/admin` is the ledger.
+4. Sign in at `/login` (Keeper). First time: `admin` / `changeme`, then choose a lasting vault key. `/admin` is the ledger. Change the key later at the bottom of the ledger.
 5. **New miniature** — name, painter, optional source name/URL, notes, photographs. Star a cover plate.
 6. Edit later to reorder, replace, or delete photographs.
 

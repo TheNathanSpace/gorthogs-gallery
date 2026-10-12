@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (best-practice pack: fail-closed, headers, a11y, CI, migrations, themes, i18n, OG, health/ready, container hygiene)
+Last updated: 2026-10-12 (keeper password in the vault; theme follows system then persists)
 
 ## Current state
 
@@ -82,7 +82,7 @@ The first complete slice is implemented and intended to be runnable:
 - `AUTH_SECRET` has a development fallback; production startup of session signing will throw if it is missing.
 - Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders.
 - Native modules (`better-sqlite3`, `sharp`) need a Debian-based image; the Dockerfile uses `node:22-bookworm-slim`.
-- Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault. Keeper credentials stay in compose/env.
+- Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault, including the keeper password hash. `AUTH_SECRET` stays in compose/env.
 - Compose `mem_limit` is 1G. Too low OOMs an upload. Do not drop below 512M for 12MP photos. See [docs/memory.md](memory.md).
-- Production boot refuses placeholder `AUTH_SECRET` and `ADMIN_PASSWORD=changeme`. If `PUBLIC_BASE_URL` is HTTPS, `AUTH_COOKIE_SECURE` must be true.
+- Production boot refuses placeholder `AUTH_SECRET`. If `PUBLIC_BASE_URL` is HTTPS, `AUTH_COOKIE_SECURE` must be true. There is no `ADMIN_PASSWORD` env: first login is `changeme`, then a scrypt hash in the vault.
 - CSP allows `'unsafe-inline'` scripts/styles because Next.js still emits them. Images are `'self'` plus `data:`/`blob:`. No third-party script hosts.

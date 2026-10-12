@@ -31,7 +31,7 @@ A more ornamental title face (Cinzel Decorative, Unifraktur, etc.) works for the
 
 ## Colors
 
-Tokens live in `src/app/globals.css`. Three skins ship, with a header toggle and `prefers-color-scheme` as the default (`system` → Night or Parchment):
+Tokens live in `src/app/globals.css`. Three skins ship, with a header toggle. The default is **system** (`prefers-color-scheme`: dark → Night, light → Parchment). A chosen skin is stored in `localStorage` under `reliquary-theme` and reused on the next visit. Pick System again to follow the OS.
 
 | Class | Skin |
 | --- | --- |

@@ -19,7 +19,8 @@ export function Providers({
         attribute="class"
         defaultTheme="system"
         enableSystem
-        themes={["night", "parchment", "high-contrast"]}
+        storageKey="reliquary-theme"
+        themes={["system", "night", "parchment", "high-contrast"]}
         value={{
           night: "night",
           parchment: "parchment",

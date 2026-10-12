@@ -52,5 +52,12 @@ export const photosRelations = relations(photos, ({ one }) => ({
   }),
 }))
 
+export const keepers = sqliteTable("keepers", {
+  username: text("username").primaryKey(),
+  passwordHash: text("password_hash"),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+})
+
 export type Miniature = typeof miniatures.$inferSelect
 export type Photo = typeof photos.$inferSelect
+export type Keeper = typeof keepers.$inferSelect

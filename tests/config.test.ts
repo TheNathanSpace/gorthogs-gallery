@@ -10,23 +10,20 @@ describe("fail-closed production config", () => {
   it("rejects a missing or placeholder AUTH_SECRET", () => {
     const errors = productionConfigErrors({
       AUTH_SECRET: "change-me-to-a-long-random-string",
-      ADMIN_PASSWORD: "a-real-password",
     })
     expect(errors.some((row) => row.includes("AUTH_SECRET"))).toBe(true)
   })
 
-  it("rejects the default changeme password", () => {
+  it("does not require a password in the environment", () => {
     const errors = productionConfigErrors({
       AUTH_SECRET: "a-sufficiently-long-random-secret",
-      ADMIN_PASSWORD: "changeme",
     })
-    expect(errors.some((row) => row.includes("ADMIN_PASSWORD"))).toBe(true)
+    expect(errors.some((row) => row.includes("PASSWORD"))).toBe(false)
   })
 
   it("rejects an insecure cookie when the public site is HTTPS", () => {
     const env = {
       AUTH_SECRET: "a-sufficiently-long-random-secret",
-      ADMIN_PASSWORD: "a-real-password",
       PUBLIC_BASE_URL: "https://minis.example.com",
       AUTH_COOKIE_SECURE: "false",
     }
@@ -35,10 +32,9 @@ describe("fail-closed production config", () => {
     expect(errors.some((row) => row.includes("AUTH_COOKIE_SECURE"))).toBe(true)
   })
 
-  it("accepts a hardened production env", () => {
+  it("accepts a hardened production env without ADMIN_PASSWORD", () => {
     const errors = productionConfigErrors({
       AUTH_SECRET: "a-sufficiently-long-random-secret",
-      ADMIN_PASSWORD: "a-real-password",
       PUBLIC_BASE_URL: "https://minis.example.com",
       AUTH_COOKIE_SECURE: "true",
     })

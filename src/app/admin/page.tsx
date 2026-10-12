@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import { Suspense } from "react"
 
+import { ChangePasswordForm } from "@/components/admin/change-password-form"
 import { DeleteMiniatureButton } from "@/components/admin/delete-miniature-button"
 import { Button } from "@/components/ui/button"
 import { requireAdmin } from "@/lib/auth"
@@ -104,6 +105,7 @@ async function Ledger() {
           })}
         </ul>
       )}
+      <ChangePasswordForm />
     </main>
   )
 }

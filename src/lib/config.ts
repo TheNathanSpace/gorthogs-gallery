@@ -20,7 +20,6 @@ export const SITE_TAGLINE = read(
 )
 
 export const ADMIN_USERNAME = read("ADMIN_USERNAME", "admin")
-export const ADMIN_PASSWORD = read("ADMIN_PASSWORD", "changeme")
 
 export const DATA_DIR = path.resolve(read("DATA_DIR", "./data"))
 export const DB_PATH = path.join(DATA_DIR, "reliquary.sqlite")
@@ -41,8 +40,6 @@ const WEAK_SECRETS = new Set([
   "change-me-to-a-long-random-string",
   "dev-only-insecure-secret-change-me",
 ])
-
-const WEAK_PASSWORDS = new Set(["", "changeme"])
 
 export type EnvMap = Record<string, string | undefined>
 
@@ -82,13 +79,6 @@ export function productionConfigErrors(env: EnvMap = process.env): string[] {
   if (WEAK_SECRETS.has(secret) || secret.length < 24) {
     errors.push(
       "AUTH_SECRET is missing, too short, or still a placeholder. Set a long random value (openssl rand -base64 48)."
-    )
-  }
-
-  const password = envValue(env, "ADMIN_PASSWORD")
-  if (WEAK_PASSWORDS.has(password.toLowerCase())) {
-    errors.push(
-      "ADMIN_PASSWORD is still the default “changeme” (or empty). Set a real keeper password."
     )
   }
 

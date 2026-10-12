@@ -32,7 +32,7 @@ function createDb() {
         "It holds the SQLite database and every photograph.",
         "",
         "Copy this whole directory (the Docker volume) to clone the gallery onto another host.",
-        "Keeper login and site title come from the container environment, not from this folder.",
+        "The keeper password hash lives here. AUTH_SECRET and site title stay in the container environment.",
         "",
       ].join("\n")
     )
@@ -83,6 +83,6 @@ export function resetDbForTests() {
 
 export function wipeVaultForTests() {
   const sqlite = getSqlite()
-  sqlite.exec("DELETE FROM photos; DELETE FROM miniatures;")
+  sqlite.exec("DELETE FROM photos; DELETE FROM miniatures; DELETE FROM keepers;")
   globalForDb.__reliquarySeed = Promise.resolve()
 }

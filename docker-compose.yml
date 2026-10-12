@@ -6,7 +6,6 @@ services:
       - "3847:3847"
     environment:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
       AUTH_SECRET: ${AUTH_SECRET:-change-me-to-a-long-random-string}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       SITE_TITLE: ${SITE_TITLE:-The Reliquary}
@@ -16,8 +15,9 @@ services:
       DATA_DIR: /data
       SEED_DEMO: ${SEED_DEMO:-true}
       # The image runs NODE_ENV=production and refuses to boot if AUTH_SECRET
-      # is a placeholder or ADMIN_PASSWORD is still changeme. Set both before
-      # compose up. If PUBLIC_BASE_URL is https://…, AUTH_COOKIE_SECURE must
+      # is a placeholder. Set it before compose up. First login uses vault key
+      # "changeme", then the keeper chooses a lasting key stored in /data —
+      # not here. If PUBLIC_BASE_URL is https://…, AUTH_COOKIE_SECURE must
       # be true.
       # Behind HTTPS, set AUTH_COOKIE_SECURE=true and PUBLIC_BASE_URL.
       # If Server Actions fail through the proxy, set SERVER_ACTION_ORIGINS
