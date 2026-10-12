@@ -127,7 +127,7 @@ openssl rand -base64 48
 1. Browse `/` — Photos wall (newest first, infinite scroll), Miniatures cards, or the dense Table.
 2. Search any keyword and narrow the field (All / Name / Painter / Source / Notes). Painter chips are a shortcut for `Painter`.
 3. Click a plate for the lightbox (Esc / arrows). **Open entry** goes to the miniature page.
-4. Sign in at `/login` (Keeper). First time: `admin` / `changeme`, then choose a lasting vault key. `/admin` is the ledger. Change the key later at the bottom of the ledger.
+4. Sign in at `/login` (Keeper). First time: `admin` / `changeme`, then choose a lasting vault key of at least 15 characters. `/admin` is the ledger. Change the key later at the bottom of the ledger.
 5. **New miniature** — name, painter, optional source name/URL, notes, photographs. Star a cover plate.
 6. Edit later to reorder, replace, or delete photographs.
 
