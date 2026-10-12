@@ -1,0 +1,37 @@
+services:
+  reliquary:
+    build: .
+    image: reliquary:local
+    ports:
+      - "3847:3847"
+    environment:
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-to-a-long-random-string}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      SITE_TITLE: ${SITE_TITLE:-The Reliquary}
+      SITE_TAGLINE: ${SITE_TAGLINE:-A vault of painted miniatures}
+      DATA_DIR: /data
+      SEED_DEMO: ${SEED_DEMO:-true}
+      # Behind HTTPS, set AUTH_COOKIE_SECURE=true.
+      # If Server Actions fail through the proxy, set SERVER_ACTION_ORIGINS
+      # at image build time (see README). The proxy should still forward
+      # X-Forwarded-Host and X-Forwarded-Proto.
+    volumes:
+      - reliquary-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3847/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  reliquary-data:
