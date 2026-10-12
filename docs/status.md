@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (NIST password floor 15, local common list, HIBP k-anonymity)
+Last updated: 2026-10-12 (docs match vault-stored keeper key and reverse-proxy deploy)
 
 ## Current state
 
@@ -9,17 +9,17 @@ The first complete slice is implemented and intended to be runnable:
 - Public justified photo library (newest first, infinite scroll), miniature cards, and a dense table
 - Keyword search with field scope (all / name / painter / source / notes)
 - Miniature detail pages with full-size lightbox
-- Single-admin session (env username/password, signed httpOnly cookie)
+- Single keeper session: `ADMIN_USERNAME` from env, password hashed in SQLite after first login (`changeme` until then), signed httpOnly cookie
 - Create / edit / delete miniatures and photographs
 - SQLite + filesystem media under `DATA_DIR`
-- Demo seed (three labeled placeholder miniatures) when the vault is empty
-- Rustic/fantasy theme with documented font/texture drop-ins
+- Demo seed (three labeled placeholder miniatures) when the miniatures table is empty
+- Rustic/fantasy theme with documented font/texture drop-ins; default follows the OS, a pick is saved in `localStorage`
 - Dockerfile, `docker-compose.yml` (1G cap, read-only root, tmpfs `/tmp`), `.env.example`
-- README as the central operations guide; [docs/memory.md](memory.md) for 3000×4000 RAM estimates
+- README as the central operations guide (including reverse-proxy deploy); [docs/memory.md](memory.md) for 3000×4000 RAM estimates
 - Drizzle Kit migrations in `drizzle/`, applied on boot
 - Night / parchment / high-contrast themes, thin English i18n, OG/robots/sitemap
 - `/api/health` vs `/api/ready`, request logs, CSP and related headers
-- CI: lint, typecheck, tests (lockout, search, pagination, rejected uploads)
+- CI: lint, typecheck, tests (lockout, search, pagination, rejected uploads, password policy)
 
 ## Requirements (from the original brief)
 
@@ -31,13 +31,13 @@ The first complete slice is implemented and intended to be runnable:
 | Google Photos-like browsing | Done (dense rows, newest first, infinite scroll, lightbox, `?photo=`) |
 | Keyword search with field narrowing | Done (`q` + `field`) |
 | Dense table of all entry data | Done (`?view=table`) |
-| Simple one-account admin login | Done |
+| Simple one-account admin login | Done (first login `changeme`, then a hash in the vault) |
 | Public browse without accounts | Done |
 | Admin can create entries | Done (edit/delete included so the ledger is usable) |
 | Modern interaction, rustic/fantasy theme | Done |
 | Placeholder assets with drop-in instructions | Done (`docs/theming.md`) |
 | Single Docker container | Done |
-| Config via environment variables | Done |
+| Config via environment variables | Done (password is not an env var) |
 | Example compose file | Done |
 | Reverse-proxy friendly (no TLS in-app) | Done |
 | README as source of truth | Done |
@@ -51,8 +51,9 @@ The first complete slice is implemented and intended to be runnable:
 - Painter is a free-text field, not a user account
 - Source is optional name + URL
 - Optional notes field for recipes / scale
-- Session JWT in an httpOnly cookie; credentials only from env
-- Port `3847` locally and in the container
+- Session JWT in an httpOnly cookie; username from `ADMIN_USERNAME`; password scrypt-hashed in the `keepers` table
+- Vault keys: 15+ characters, no composition rules, local common-password list, optional HIBP k-anonymity
+- Port `3847` locally and in the container; production should not publish it on the public internet
 - Default site title “The Reliquary”
 
 ## Todos / later
@@ -79,10 +80,11 @@ The first complete slice is implemented and intended to be runnable:
 ## Known caveats
 
 - `SERVER_ACTION_ORIGINS` is read at **image build** time because it lives in `next.config.ts`. Prefer forwarding `X-Forwarded-Host` on the proxy instead of baking hosts into the image.
-- `AUTH_SECRET` has a development fallback; production startup of session signing will throw if it is missing.
-- Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders.
+- `AUTH_SECRET` has a development fallback; production startup refuses a missing or placeholder secret.
+- Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders. Set `SEED_DEMO=false` before the first production boot for an empty vault.
 - Native modules (`better-sqlite3`, `sharp`) need a Debian-based image; the Dockerfile uses `node:22-bookworm-slim`.
-- Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault, including the keeper password hash. `AUTH_SECRET` stays in compose/env.
+- Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault, including the keeper password hash. `AUTH_SECRET` stays in compose/env; rotating it invalidates sessions, not the password.
 - Compose `mem_limit` is 1G. Too low OOMs an upload. Do not drop below 512M for 12MP photos. See [docs/memory.md](memory.md).
-- Production boot refuses placeholder `AUTH_SECRET`. If `PUBLIC_BASE_URL` is HTTPS, `AUTH_COOKIE_SECURE` must be true. There is no `ADMIN_PASSWORD` env: first login is `changeme`, then a scrypt hash in the vault. Lasting keys: 15+ characters, local common-password blocklist, optional HIBP range API (`PWNED_PASSWORDS`).
+- Until the keeper sets a lasting key, `/login` accepts `changeme`. Set the key on a private network before publishing the proxy. There is no `ADMIN_PASSWORD` env.
+- Compose publishes `3847` for local use. Production should bind `127.0.0.1` or drop `ports` and put TLS/HSTS on the reverse proxy.
 - CSP allows `'unsafe-inline'` scripts/styles because Next.js still emits them. Images are `'self'` plus `data:`/`blob:`. No third-party script hosts.

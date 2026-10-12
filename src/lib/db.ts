@@ -32,7 +32,8 @@ function createDb() {
         "It holds the SQLite database and every photograph.",
         "",
         "Copy this whole directory (the Docker volume) to clone the gallery onto another host.",
-        "The keeper password hash lives here. AUTH_SECRET and site title stay in the container environment.",
+        "The keeper password hash lives here with the photographs.",
+        "AUTH_SECRET, keeper username, and site title stay in the container environment.",
         "",
       ].join("\n")
     )

@@ -12,11 +12,11 @@ The library is deliberately Google Photos-like: a wide justified photo wall, a g
 - Keyword search scoped to all fields, name, painter, source, or notes
 - Detail page per miniature with metadata and a large gallery
 - Lightbox with keyboard arrows, original-file download, and source link
-- Single admin login (username/password from environment variables)
+- Single keeper login (username from env; password chosen on first login and hashed in the vault)
 - Create / edit / delete entries and photographs
 - SQLite + files on disk, one Docker container, reverse-proxy ready
 
-Placeholder miniatures are seeded on first boot so the vault is not empty. They are labeled **PLACEHOLDER PHOTO** — replace them from the ledger.
+Placeholder miniatures are seeded on first boot so the vault is not empty. They are labeled **PLACEHOLDER PHOTO** — replace them from the ledger. Set `SEED_DEMO=false` before the first start for an empty vault.
 
 ## Quick start (local)
 
@@ -33,34 +33,46 @@ Open [http://127.0.0.1:3847](http://127.0.0.1:3847). Sign in at `/login` as `adm
 
 ```bash
 cp .env.example .env
-# set AUTH_SECRET to a long random value
+# set AUTH_SECRET to a long random value (openssl rand -base64 48)
 docker compose up --build
 ```
 
-The example compose file publishes port **3847**, caps the container at **1G** of RAM, runs with a **read-only root filesystem** plus tmpfs `/tmp`, and stores SQLite plus photographs in the `reliquary-data` volume. Sit this behind Caddy, Traefik, or nginx. TLS belongs on the proxy; this container speaks HTTP only.
+Compose publishes **3847** for local use, caps RAM at **1G**, runs a **read-only root** plus tmpfs `/tmp`, and stores SQLite plus photographs in the `reliquary-data` volume. The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder.
 
-The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder. Set it in `.env` before `docker compose up`. If `PUBLIC_BASE_URL` is `https://…`, `AUTH_COOKIE_SECURE` must be `true` or startup fails the same way.
+Treat `mem_limit` carefully: too low and Docker kills the process mid-upload (exit 137). A 3000×4000 photo is ~46 MiB uncompressed; 1G is the comfortable default and **512M is the floor** for 12MP uploads. Pixel count drives RAM, not file size. Measured numbers: [docs/memory.md](docs/memory.md).
 
-The keeper password is **not** in compose. First login is `admin` / `changeme`; the next screen stores a scrypt hash in the vault volume. Lasting keys follow [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b/passwords/): **15+ characters**, no composition theater, a local common-password blocklist, and a Have I Been Pwned k-anonymity check (SHA-1 prefix only; the password never leaves the container). Set `PWNED_PASSWORDS=false` if the host cannot reach `api.pwnedpasswords.com`. If HIBP is unreachable the check fails open; the local list still applies. A volume clone copies the hash. To reset a forgotten key (vault idle):
+Liveness: `GET /api/health` (SQLite ping + readable disk). Readiness: `GET /api/ready` (same, plus a writable vault). Compose healthchecks `/api/ready`.
+
+### Keeper login
+
+The keeper password is **not** an environment variable and is **not** in compose. Username defaults to `admin` (`ADMIN_USERNAME`).
+
+1. Sign in at `/login` with vault key `changeme`.
+2. Choose a lasting key of **at least 15 characters**. A passphrase is fine. There are no uppercase/digit/symbol rules.
+3. Reliquary stores a scrypt hash in the vault (SQLite). Common passwords are blocked from a local list. New keys are also checked against Have I Been Pwned by **SHA-1 prefix only** (k-anonymity); the password never leaves the container. Set `PWNED_PASSWORDS=false` if the host has no outbound HTTPS. If HIBP is unreachable the check fails open; the local list still applies.
+
+Change the key later at the bottom of the ledger. To reset a forgotten key, stop writes, then:
 
 ```bash
 sqlite3 ./data/reliquary.sqlite "UPDATE keepers SET password_hash = NULL;"
 ```
 
-Then sign in with `changeme` and choose a new key.
+In Docker the database is `/data/reliquary.sqlite` on the `reliquary-data` volume. Sign in with `changeme` again and choose a new key.
 
-Treat `mem_limit` carefully: too low and Docker kills the process mid-upload. A 3000×4000 photo is ~46 MiB uncompressed; 1G is the comfortable default and **512M is the floor** for 12MP uploads. Pixel count drives RAM, not file size. Measured numbers: [docs/memory.md](docs/memory.md).
+### Deploy behind a reverse proxy
 
-Liveness: `GET /api/health` (SQLite ping + readable disk). Readiness: `GET /api/ready` (same, plus a writable vault). Compose uses `/api/ready`.
+The container speaks HTTP only. TLS and HSTS belong on Caddy, Traefik, or nginx.
 
-Point the proxy at `http://reliquary:3847` (or `127.0.0.1:3847`) and forward:
+1. Generate `AUTH_SECRET` and put it in `.env`. Never use the placeholder.
+2. Set `PUBLIC_BASE_URL=https://your.domain` and `AUTH_COOKIE_SECURE=true`. Production refuses to boot if the public URL is HTTPS and the cookie is not Secure.
+3. Set `SEED_DEMO=false` before the **first** start if you do not want placeholder miniatures.
+4. **Do not publish port 3847 on the public internet.** Bind `127.0.0.1:3847:3847`, or drop `ports:` and put the proxy on the same Docker network. Point the proxy at `http://reliquary:3847` (or `127.0.0.1:3847`) and forward:
+   - `X-Forwarded-Host` — the public hostname
+   - `X-Forwarded-Proto` — `https`
+5. Bring the stack up on a **private** network, sign in, set the lasting vault key, **then** open the proxy. Until that key is set, `changeme` works.
+6. Back up the `reliquary-data` volume on a schedule (see below). Give the volume disk headroom: each upload keeps original + display WebP + thumb.
 
-- `X-Forwarded-Host` — the public hostname
-- `X-Forwarded-Proto` — `https` when the public site is HTTPS
-
-Then set `AUTH_COOKIE_SECURE=true` so the session cookie is marked Secure.
-
-Health check: `GET /api/ready` (Compose) or `GET /api/health` (liveness only).
+`SERVER_ACTION_ORIGINS` is a **build-time** fallback if the proxy cannot forward `X-Forwarded-Host`. Prefer forwarding the headers.
 
 ### Restore or clone from the volume
 
@@ -89,18 +101,18 @@ docker run --rm \
 docker compose up -d
 ```
 
-`AUTH_SECRET`, keeper username, and site title are container environment. The keeper **password hash** lives in the vault with the photographs, so a volume clone keeps the same key. The public library comes up from the volume alone.
+`AUTH_SECRET`, keeper username, and site title stay in the container environment. The keeper **password hash** lives in the vault with the photographs, so a volume clone keeps the same key. Existing sessions use `AUTH_SECRET`; a new secret only invalidates cookies, not the password. The public library comes up from the volume alone.
 
-Do not copy `/data` while the container is writing. `docker compose stop` first.
+Do not copy `/data` while the container is writing. `docker compose stop` first. Schedule that archive; the volume is the gallery.
 
 ## Environment variables
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `AUTH_SECRET` | (dev fallback) | **Required in production.** Signs the admin session. |
-| `ADMIN_USERNAME` | `admin` | The only login name. |
+| `AUTH_SECRET` | (dev fallback) | **Required in production.** Signs the keeper session cookie. |
+| `ADMIN_USERNAME` | `admin` | The only login name. Not a secret. The password is not an env var (see Keeper login). |
 | `PWNED_PASSWORDS` | `true` | Check new vault keys against Have I Been Pwned (k-anonymity). Local common-password list always runs. |
-| `AUTH_COOKIE_SECURE` | `false` | Set `true` when served over HTTPS. |
+| `AUTH_COOKIE_SECURE` | `false` | Must be `true` when served over HTTPS. |
 | `AUTH_COOKIE_NAME` | `reliquary_session` | Session cookie name. |
 | `SESSION_TTL_SECONDS` | `604800` | Session lifetime (7 days). |
 | `DATA_DIR` | `./data` (`/data` in Docker) | SQLite database and uploaded media. |
@@ -108,7 +120,7 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | `LOCALE` | `en` | UI language. English catalog ships first. Dates use `Intl` for this locale. |
 | `SITE_TITLE` | `The Reliquary` | Header and page titles. |
 | `SITE_TAGLINE` | `A vault of painted miniatures` | Subtitle and metadata description. |
-| `SEED_DEMO` | `true` | Seed labeled placeholder miniatures if the DB is empty. |
+| `SEED_DEMO` | `true` | Seed labeled placeholder miniatures if the miniatures table is empty. Set `false` before first production boot for an empty vault. |
 | `MAX_UPLOAD_BYTES` | `20971520` | Per-file upload cap (20 MB). |
 | `DISPLAY_MAX_EDGE` | `2400` | Long edge of the lightbox WebP. |
 | `THUMB_MAX_EDGE` | `640` | Long edge of library thumbnails. |
@@ -127,11 +139,9 @@ openssl rand -base64 48
 1. Browse `/` — Photos wall (newest first, infinite scroll), Miniatures cards, or the dense Table.
 2. Search any keyword and narrow the field (All / Name / Painter / Source / Notes). Painter chips are a shortcut for `Painter`.
 3. Click a plate for the lightbox (Esc / arrows). **Open entry** goes to the miniature page.
-4. Sign in at `/login` (Keeper). First time: `admin` / `changeme`, then choose a lasting vault key of at least 15 characters. `/admin` is the ledger. Change the key later at the bottom of the ledger.
+4. Sign in at `/login`. First time: `admin` / `changeme`, then a lasting vault key of at least 15 characters. `/admin` is the ledger. Change the key later at the bottom of the ledger. Visitors never need this.
 5. **New miniature** — name, painter, optional source name/URL, notes, photographs. Star a cover plate.
 6. Edit later to reorder, replace, or delete photographs.
-
-Visitors never see the login unless they open `/login`.
 
 ## Data layout
 
@@ -163,7 +173,7 @@ Set `SEED_DEMO=false` before the first start if you want an empty vault. Seeding
 
 Fonts, colors, and optional textures: see [docs/theming.md](docs/theming.md).
 
-### Image digest pinning (optional)
+## Image digest pinning (optional)
 
 Compose uses `image: reliquary:local` so `docker compose up --build` always rebuilds from this repo. To pin a published image:
 

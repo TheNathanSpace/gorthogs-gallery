@@ -3,6 +3,8 @@ services:
     build: .
     image: reliquary:local
     ports:
+      # Local/dev. For a public deploy bind 127.0.0.1:3847:3847 or drop this
+      # and put the reverse proxy on the same Docker network.
       - "3847:3847"
     environment:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -15,13 +17,12 @@ services:
       DATA_DIR: /data
       SEED_DEMO: ${SEED_DEMO:-true}
       PWNED_PASSWORDS: ${PWNED_PASSWORDS:-true}
-      # The image runs NODE_ENV=production and refuses to boot if AUTH_SECRET
-      # is a placeholder. Set it before compose up. First login uses vault key
-      # "changeme", then the keeper chooses a lasting key (15+ characters)
-      # stored in /data — not here. PWNED_PASSWORDS checks Have I Been Pwned
-      # by SHA-1 prefix only; the password never leaves the container. Set
-      # false if the host has no outbound HTTPS. If PUBLIC_BASE_URL is
-      # https://…, AUTH_COOKIE_SECURE must be true.
+      # NODE_ENV=production refuses a placeholder AUTH_SECRET. First login is
+      # vault key "changeme"; the lasting key is hashed in /data, not here.
+      # Set SEED_DEMO=false before first production boot for an empty vault.
+      # PWNED_PASSWORDS uses Have I Been Pwned k-anonymity (SHA-1 prefix).
+      # Set false with no outbound HTTPS. If PUBLIC_BASE_URL is https://…,
+      # AUTH_COOKIE_SECURE must be true.
       # Behind HTTPS, set AUTH_COOKIE_SECURE=true and PUBLIC_BASE_URL.
       # If Server Actions fail through the proxy, set SERVER_ACTION_ORIGINS
       # at image build time (see README). The proxy should still forward
