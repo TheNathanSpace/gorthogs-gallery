@@ -37,7 +37,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The example compose file publishes port **3847** and stores SQLite plus photographs in the `reliquary-data` volume. Sit this behind Caddy, Traefik, or nginx. TLS belongs on the proxy; this container speaks HTTP only.
+The example compose file publishes port **3847**, caps the container at **1G** of RAM, and stores SQLite plus photographs in the `reliquary-data` volume. Sit this behind Caddy, Traefik, or nginx. TLS belongs on the proxy; this container speaks HTTP only.
+
+Treat `mem_limit` carefully: too low and Docker kills the process mid-upload. A 3000×4000 photo is ~46 MiB uncompressed; 1G is the comfortable default and **512M is the floor** for 12MP uploads. Pixel count drives RAM, not file size. Measured numbers: [docs/memory.md](docs/memory.md).
 
 Point the proxy at `http://reliquary:3847` (or `127.0.0.1:3847`) and forward:
 

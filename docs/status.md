@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (newest-first wall paints immediately; infinite scroll)
+Last updated: 2026-10-12 (Compose memory limit + 3000×4000 estimates)
 
 ## Current state
 
@@ -14,8 +14,8 @@ The first complete slice is implemented and intended to be runnable:
 - SQLite + filesystem media under `DATA_DIR`
 - Demo seed (three labeled placeholder miniatures) when the vault is empty
 - Rustic/fantasy theme with documented font/texture drop-ins
-- Dockerfile, `docker-compose.yml`, `.env.example`
-- README as the central operations guide
+- Dockerfile, `docker-compose.yml` (`mem_limit: 1g` with a caution), `.env.example`
+- README as the central operations guide; [docs/memory.md](memory.md) for 3000×4000 RAM estimates
 
 ## Requirements (from the original brief)
 
@@ -72,3 +72,4 @@ The first complete slice is implemented and intended to be runnable:
 - Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders.
 - Native modules (`better-sqlite3`, `sharp`) need a Debian-based image; the Dockerfile uses `node:22-bookworm-slim`.
 - Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault. Keeper credentials stay in compose/env.
+- Compose `mem_limit` is 1G. Too low OOMs an upload. Do not drop below 512M for 12MP photos. See [docs/memory.md](memory.md).

@@ -20,6 +20,13 @@ services:
     volumes:
       # Entire vault (SQLite + photographs). Copy this volume to clone the gallery.
       - reliquary-data:/data
+    # Memory: treat this limit carefully. Too low and Docker SIGKILLs the
+    # process mid-upload (OOM, exit 137). Pixel count drives RAM, not file
+    # size. A 3000×4000 photo is ~46 MiB uncompressed RGBA; Sharp decode
+    # peaked ~26–73 MiB above idle. Next.js idle is typically 150–300 MiB.
+    # 1G is the comfortable default. Do not go below 512M for 12MP photos.
+    # Full table: docs/memory.md
+    mem_limit: 1g
     restart: unless-stopped
     healthcheck:
       test:
