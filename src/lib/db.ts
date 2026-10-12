@@ -1,6 +1,7 @@
 import "server-only"
 
-import { mkdirSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync } from "node:fs"
+import path from "node:path"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 
@@ -52,8 +53,24 @@ function migrate(sqlite: Database.Database) {
 function createDb() {
   mkdirSync(DATA_DIR, { recursive: true })
   mkdirSync(MEDIA_DIR, { recursive: true })
+  const marker = path.join(DATA_DIR, "VAULT.txt")
+  if (!existsSync(marker)) {
+    writeFileSync(
+      marker,
+      [
+        "This directory is a Reliquary vault.",
+        "It holds the SQLite database and every photograph.",
+        "",
+        "Copy this whole directory (the Docker volume) to clone the gallery onto another host.",
+        "Keeper login and site title come from the container environment, not from this folder.",
+        "",
+      ].join("\n")
+    )
+  }
   const sqlite = new Database(DB_PATH)
   migrate(sqlite)
+  // Flush WAL so a copied /data volume is a consistent clone after stop.
+  sqlite.pragma("wal_checkpoint(TRUNCATE)")
   return drizzle(sqlite, { schema })
 }
 

@@ -71,3 +71,4 @@ The first complete slice is implemented and intended to be runnable:
 - `AUTH_SECRET` has a development fallback; production startup of session signing will throw if it is missing.
 - Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders.
 - Native modules (`better-sqlite3`, `sharp`) need a Debian-based image; the Dockerfile uses `node:22-bookworm-slim`.
+- Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault. Keeper credentials stay in compose/env.

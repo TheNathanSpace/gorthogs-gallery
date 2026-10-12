@@ -18,6 +18,7 @@ services:
       # at image build time (see README). The proxy should still forward
       # X-Forwarded-Host and X-Forwarded-Proto.
     volumes:
+      # Entire vault (SQLite + photographs). Copy this volume to clone the gallery.
       - reliquary-data:/data
     restart: unless-stopped
     healthcheck:

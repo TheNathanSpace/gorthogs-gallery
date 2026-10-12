@@ -48,6 +48,37 @@ Then set `AUTH_COOKIE_SECURE=true` so the session cookie is marked Secure.
 
 Health check: `GET /api/health`.
 
+### Restore or clone from the volume
+
+The named volume `reliquary-data` (mounted at `/data`) is the **entire vault**: SQLite, WAL files, and every photograph. Copy that volume onto another host and start this image — that is a cloned instance of the gallery.
+
+Stop the source container first so SQLite is idle, then archive the volume:
+
+```bash
+docker compose stop reliquary
+docker run --rm \
+  -v reliquary_reliquary-data:/vault \
+  -v "$PWD":/backup \
+  alpine tar czf /backup/reliquary-vault.tar.gz -C /vault .
+```
+
+The compose project name prefixes the volume (`<project>_reliquary-data`). Check with `docker volume ls`.
+
+On the new host, with this same repo/image:
+
+```bash
+docker volume create reliquary_reliquary-data
+docker run --rm \
+  -v reliquary_reliquary-data:/vault \
+  -v "$PWD":/backup \
+  alpine tar xzf /backup/reliquary-vault.tar.gz -C /vault
+docker compose up -d
+```
+
+Keeper username/password, `AUTH_SECRET`, and site title are container environment, not vault data. A content clone does not copy those; set them on the new compose stack. The public library comes up from the volume alone.
+
+Do not copy `/data` while the container is writing. `docker compose stop` first.
+
 ## Environment variables
 
 | Variable | Default | Purpose |

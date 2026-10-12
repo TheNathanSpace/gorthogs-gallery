@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { preload } from "react-dom"
 
 import { EmptyState } from "@/components/gallery/empty-state"
 import { GallerySkeleton } from "@/components/gallery/gallery-skeleton"
@@ -15,6 +16,7 @@ import {
   listPainters,
 } from "@/lib/miniatures"
 import { parseLibraryView, parseSearchField, PHOTO_PAGE_SIZE } from "@/lib/search"
+import { photoUrl } from "@/lib/urls"
 
 export default function Home({
   searchParams,
@@ -60,6 +62,11 @@ async function Library({
   ])
 
   let photos = page.photos
+  if (view === "photos") {
+    for (const photo of photos.slice(0, 8)) {
+      preload(photoUrl(photo.id, "thumb"), { as: "image" })
+    }
+  }
   if (params.photo && !photos.some((photo) => photo.id === params.photo)) {
     const extra = await getGalleryPhotoById(params.photo)
     if (extra) photos = [...photos, extra]
