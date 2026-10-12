@@ -76,9 +76,7 @@ The container speaks HTTP only. TLS and HSTS belong on Caddy, Traefik, or nginx.
 
 ### GitHub releases
 
-This repo is meant to live on GitHub. After `main` is there, publish a version by pushing a tag. Actions run lint, typecheck, and tests, build `linux/amd64` and `linux/arm64`, push to GitHub Container Registry, and open a GitHub Release.
-
-Tags should look like `v1.2.3` (optional pre-release: `v1.2.3-rc.1`).
+This repo is meant to live on GitHub. After `main` is there, publish a version by pushing a **semver tag with a `v` prefix**. Actions refuse anything else (`v1.2.3` or `v1.2.3-rc.1`, not `1.2.3` or `v2`). They run lint, typecheck, and tests, build `linux/amd64` and `linux/arm64`, push to GitHub Container Registry, and open a GitHub Release whose description is a **changelog of commit subjects since the previous version tag**.
 
 ```bash
 git tag -a v1.0.0 -m "v1.0.0"
