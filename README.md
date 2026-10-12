@@ -27,7 +27,7 @@ npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:3847](http://127.0.0.1:3847). Sign in at `/login` as `admin` with vault key `changeme`, then choose a lasting key. Data lands in `./data`.
+Open [http://127.0.0.1:3847](http://127.0.0.1:3847). Sign in at `/login` as `admin` with vault key `changeme`, then choose a lasting key of at least 15 characters. Data lands in `./data`.
 
 ## Docker
 
@@ -41,7 +41,7 @@ The example compose file publishes port **3847**, caps the container at **1G** o
 
 The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder. Set it in `.env` before `docker compose up`. If `PUBLIC_BASE_URL` is `https://…`, `AUTH_COOKIE_SECURE` must be `true` or startup fails the same way.
 
-The keeper password is **not** in compose. First login is `admin` / `changeme`; the next screen stores a scrypt hash in the vault volume. A volume clone copies that hash. To reset a forgotten key (vault idle):
+The keeper password is **not** in compose. First login is `admin` / `changeme`; the next screen stores a scrypt hash in the vault volume. Lasting keys follow [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b/passwords/): **15+ characters**, no composition theater, a local common-password blocklist, and a Have I Been Pwned k-anonymity check (SHA-1 prefix only; the password never leaves the container). Set `PWNED_PASSWORDS=false` if the host cannot reach `api.pwnedpasswords.com`. If HIBP is unreachable the check fails open; the local list still applies. A volume clone copies the hash. To reset a forgotten key (vault idle):
 
 ```bash
 sqlite3 ./data/reliquary.sqlite "UPDATE keepers SET password_hash = NULL;"
@@ -99,6 +99,7 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | --- | --- | --- |
 | `AUTH_SECRET` | (dev fallback) | **Required in production.** Signs the admin session. |
 | `ADMIN_USERNAME` | `admin` | The only login name. |
+| `PWNED_PASSWORDS` | `true` | Check new vault keys against Have I Been Pwned (k-anonymity). Local common-password list always runs. |
 | `AUTH_COOKIE_SECURE` | `false` | Set `true` when served over HTTPS. |
 | `AUTH_COOKIE_NAME` | `reliquary_session` | Session cookie name. |
 | `SESSION_TTL_SECONDS` | `604800` | Session lifetime (7 days). |

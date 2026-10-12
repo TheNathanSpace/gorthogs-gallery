@@ -15,7 +15,7 @@ import {
 import { ensureDb } from "@/lib/db"
 import { t } from "@/lib/i18n"
 import { setKeeperPassword, verifyCredentials } from "@/lib/keepers"
-import { passwordIssues } from "@/lib/password"
+import { evaluatePassword } from "@/lib/password"
 
 export type LoginState = { error?: string; setup?: boolean } | undefined
 
@@ -75,7 +75,7 @@ export async function setPasswordAction(
   const password = String(formData.get("newPassword") ?? "")
   const confirm = String(formData.get("confirmPassword") ?? "")
   const dest = safeNext(String(formData.get("next") ?? "/admin"))
-  const issues = passwordIssues(password, confirm)
+  const issues = await evaluatePassword(password, confirm)
   if (issues.length > 0) {
     return { error: t(issues[0]), setup: true }
   }
@@ -100,7 +100,7 @@ export async function changePasswordAction(
     return { error: t("badCredentials") }
   }
 
-  const issues = passwordIssues(password, confirm)
+  const issues = await evaluatePassword(password, confirm)
   if (issues.length > 0) {
     return { error: t(issues[0]) }
   }

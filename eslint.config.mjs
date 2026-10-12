@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "drizzle/**",
     "coverage/**",
+    "src/lib/common-passwords.ts",
   ]),
 ]);
 

@@ -36,7 +36,8 @@ export function ChangePasswordForm() {
           type="password"
           autoComplete="new-password"
           required
-          minLength={10}
+          minLength={15}
+          maxLength={256}
           className="h-9 bg-background/60"
         />
       </div>
@@ -48,7 +49,8 @@ export function ChangePasswordForm() {
           type="password"
           autoComplete="new-password"
           required
-          minLength={10}
+          minLength={15}
+          maxLength={256}
           className="h-9 bg-background/60"
         />
       </div>

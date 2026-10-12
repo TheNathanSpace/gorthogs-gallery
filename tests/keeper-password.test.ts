@@ -14,17 +14,23 @@ afterEach(() => {
 })
 
 describe("password rules", () => {
-  it("rejects a short key, changeme, and a mismatch", () => {
-    expect(passwordIssues("short")).toContain("passwordTooShort")
-    expect(passwordIssues(BOOTSTRAP_PASSWORD)).toContain("passwordStillBootstrap")
-    expect(passwordIssues("a-lasting-key", "other-key")).toContain("passwordMismatch")
-    expect(passwordIssues("a-lasting-key", "a-lasting-key")).toEqual([])
+  it("rejects short keys, expected values, common passwords, and mismatches", () => {
+    expect(passwordIssues("fourteenchars!")).toContain("passwordTooShort")
+    expect(passwordIssues(BOOTSTRAP_PASSWORD)).toContain("passwordTooShort")
+    expect(passwordIssues("adminadminadmin")).toContain("passwordExpected")
+    expect(passwordIssues("passwordpassword")).toContain("passwordCommon")
+    expect(
+      passwordIssues("a-lasting-vault-key", "other-lasting-key")
+    ).toContain("passwordMismatch")
+    expect(
+      passwordIssues("a-lasting-vault-key", "a-lasting-vault-key")
+    ).toEqual([])
   })
 
   it("round-trips a scrypt hash", async () => {
-    const stored = await hashPassword("a-lasting-key")
+    const stored = await hashPassword("a-lasting-vault-key")
     expect(stored.startsWith("scrypt:")).toBe(true)
-    expect(await verifyPasswordHash("a-lasting-key", stored)).toBe(true)
+    expect(await verifyPasswordHash("a-lasting-vault-key", stored)).toBe(true)
     expect(await verifyPasswordHash("wrong-key", stored)).toBe(false)
   })
 })
@@ -39,9 +45,9 @@ describe("first-login bootstrap", () => {
       mustSetPassword: true,
     })
 
-    await setKeeperPassword("a-lasting-key")
+    await setKeeperPassword("a-lasting-vault-key")
 
-    const after = await verifyCredentials("admin", "a-lasting-key")
+    const after = await verifyCredentials("admin", "a-lasting-vault-key")
     expect(after).toEqual({ ok: true, mustSetPassword: false })
     expect(await verifyCredentials("admin", BOOTSTRAP_PASSWORD)).toEqual({
       ok: false,

@@ -34,6 +34,7 @@ export const THUMB_MAX_EDGE = Number(read("THUMB_MAX_EDGE", "640"))
 export const LOCALE = read("LOCALE", "en")
 export const PUBLIC_BASE_URL = read("PUBLIC_BASE_URL").replace(/\/$/, "")
 export const AUTH_COOKIE_SECURE = readBool("AUTH_COOKIE_SECURE", false)
+export const PWNED_PASSWORDS = readBool("PWNED_PASSWORDS", true)
 
 const WEAK_SECRETS = new Set([
   "",

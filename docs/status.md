@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (keeper password in the vault; theme follows system then persists)
+Last updated: 2026-10-12 (NIST password floor 15, local common list, HIBP k-anonymity)
 
 ## Current state
 
@@ -84,5 +84,5 @@ The first complete slice is implemented and intended to be runnable:
 - Native modules (`better-sqlite3`, `sharp`) need a Debian-based image; the Dockerfile uses `node:22-bookworm-slim`.
 - Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault, including the keeper password hash. `AUTH_SECRET` stays in compose/env.
 - Compose `mem_limit` is 1G. Too low OOMs an upload. Do not drop below 512M for 12MP photos. See [docs/memory.md](memory.md).
-- Production boot refuses placeholder `AUTH_SECRET`. If `PUBLIC_BASE_URL` is HTTPS, `AUTH_COOKIE_SECURE` must be true. There is no `ADMIN_PASSWORD` env: first login is `changeme`, then a scrypt hash in the vault.
+- Production boot refuses placeholder `AUTH_SECRET`. If `PUBLIC_BASE_URL` is HTTPS, `AUTH_COOKIE_SECURE` must be true. There is no `ADMIN_PASSWORD` env: first login is `changeme`, then a scrypt hash in the vault. Lasting keys: 15+ characters, local common-password blocklist, optional HIBP range API (`PWNED_PASSWORDS`).
 - CSP allows `'unsafe-inline'` scripts/styles because Next.js still emits them. Images are `'self'` plus `data:`/`blob:`. No third-party script hosts.

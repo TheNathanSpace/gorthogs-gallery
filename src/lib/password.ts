@@ -1,27 +1,31 @@
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto"
 import { promisify } from "node:util"
 
+import {
+  BOOTSTRAP_PASSWORD,
+  passwordIssues,
+  type PasswordIssue,
+} from "@/lib/password-policy"
+import { isBreachedPassword } from "@/lib/pwned-passwords"
+
 const scryptAsync = promisify(scrypt)
 
-export const BOOTSTRAP_PASSWORD = "changeme"
-export const MIN_PASSWORD_LENGTH = 10
+export {
+  BOOTSTRAP_PASSWORD,
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  passwordIssues,
+  type PasswordIssue,
+} from "@/lib/password-policy"
 
-export type PasswordIssue =
-  | "passwordTooShort"
-  | "passwordStillBootstrap"
-  | "passwordMismatch"
-
-export function passwordIssues(
+export async function evaluatePassword(
   password: string,
   confirm?: string
-): PasswordIssue[] {
-  const issues: PasswordIssue[] = []
-  if (password.length < MIN_PASSWORD_LENGTH) issues.push("passwordTooShort")
-  if (password.toLowerCase() === BOOTSTRAP_PASSWORD) {
-    issues.push("passwordStillBootstrap")
-  }
-  if (confirm !== undefined && password !== confirm) issues.push("passwordMismatch")
-  return issues
+): Promise<PasswordIssue[]> {
+  const issues = passwordIssues(password, confirm)
+  if (issues.length > 0) return issues
+  if (await isBreachedPassword(password)) return ["passwordPwned"]
+  return []
 }
 
 export async function hashPassword(password: string): Promise<string> {
