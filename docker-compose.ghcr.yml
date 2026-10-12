@@ -1,0 +1,7 @@
+# Pull a published GitHub Container Registry image instead of building locally.
+# RELIQUARY_IMAGE=ghcr.io/<owner>/<repo>:v1.0.0
+# docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+services:
+  reliquary:
+    image: ${RELIQUARY_IMAGE:?Set RELIQUARY_IMAGE to ghcr.io/<owner>/<repo>:<tag>}
+    build: !reset

@@ -74,6 +74,35 @@ The container speaks HTTP only. TLS and HSTS belong on Caddy, Traefik, or nginx.
 
 `SERVER_ACTION_ORIGINS` is a **build-time** fallback if the proxy cannot forward `X-Forwarded-Host`. Prefer forwarding the headers.
 
+### GitHub releases
+
+This repo is meant to live on GitHub. After `main` is there, publish a version by pushing a tag. Actions run lint, typecheck, and tests, build `linux/amd64` and `linux/arm64`, push to GitHub Container Registry, and open a GitHub Release.
+
+Tags should look like `v1.2.3` (optional pre-release: `v1.2.3-rc.1`).
+
+```bash
+git tag -a v1.0.0 -m "v1.0.0"
+git push origin v1.0.0
+```
+
+Do not create the GitHub Release by hand; the workflow does that. The image is:
+
+```text
+ghcr.io/<owner>/<repo>:v1.0.0
+```
+
+The same digest is also tagged `:1.0.0`, `:1.0`, and `:latest` (not on pre-releases). Pull and run:
+
+```bash
+docker pull ghcr.io/<owner>/<repo>:v1.0.0
+RELIQUARY_IMAGE=ghcr.io/<owner>/<repo>:v1.0.0 \
+  docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+```
+
+The first package from a public GitHub repo is often **private** until you change it: GitHub → **Packages** → the image → **Package settings** → **Change visibility** → Public. Private repos stay private; `docker login ghcr.io` with a `read:packages` token.
+
+If Actions cannot push to GHCR, set **Settings → Actions → General → Workflow permissions** to read and write (or allow the `packages: write` permission this workflow requests).
+
 ### Restore or clone from the volume
 
 The named volume `reliquary-data` (mounted at `/data`) is the **entire vault**: SQLite, WAL files, and every photograph. Copy that volume onto another host and start this image — that is a cloned instance of the gallery.
@@ -175,13 +204,13 @@ Fonts, colors, and optional textures: see [docs/theming.md](docs/theming.md).
 
 ## Image digest pinning (optional)
 
-Compose uses `image: reliquary:local` so `docker compose up --build` always rebuilds from this repo. To pin a published image:
+Local compose uses `image: reliquary:local` so `docker compose up --build` rebuilds from this repo. A GitHub Release lists the GHCR digest for that tag. Pin it:
 
-```bash
-docker image inspect reliquary:local --format '{{index .RepoDigests 0}}'
+```yaml
+image: ghcr.io/<owner>/<repo>@sha256:…
 ```
 
-Then set `image: registry.example.com/reliquary@sha256:…` and drop `build:`. Do not commit a digest you have not verified.
+and use `docker-compose.ghcr.yml` (or drop `build:`). Do not commit a digest you have not verified.
 
 ## Stack
 

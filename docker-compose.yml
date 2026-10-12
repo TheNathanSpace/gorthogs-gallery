@@ -2,6 +2,8 @@ services:
   reliquary:
     build: .
     image: reliquary:local
+    # To run a GitHub Release image instead: set RELIQUARY_IMAGE and
+    # docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
     ports:
       # Local/dev. For a public deploy bind 127.0.0.1:3847:3847 or drop this
       # and put the reverse proxy on the same Docker network.

@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (docs match vault-stored keeper key and reverse-proxy deploy)
+Last updated: 2026-10-12 (GitHub tag builds GHCR image + Release)
 
 ## Current state
 
@@ -20,6 +20,7 @@ The first complete slice is implemented and intended to be runnable:
 - Night / parchment / high-contrast themes, thin English i18n, OG/robots/sitemap
 - `/api/health` vs `/api/ready`, request logs, CSP and related headers
 - CI: lint, typecheck, tests (lockout, search, pagination, rejected uploads, password policy)
+- Tag `v*` on GitHub: tests, multi-arch image to GHCR, GitHub Release
 
 ## Requirements (from the original brief)
 
