@@ -34,6 +34,12 @@ services:
       # Set PWNED_PASSWORDS to "false" if the host has no outbound HTTPS.
     volumes:
       - reliquary-data:/data
+    # Root filesystem is read-only. The only writable places are the
+    # /data volume (vault) and this tmpfs /tmp. Sharp writes upload
+    # scratch here; Next.js writes short-lived files. Do not drop the
+    # tmpfs and do not bind-mount /tmp to disk — either breaks
+    # uploads or puts originals on the host. 256m is RAM (counts
+    # toward mem_limit); 1777 is a normal sticky /tmp.
     read_only: true
     tmpfs:
       - /tmp:size=256m,mode=1777

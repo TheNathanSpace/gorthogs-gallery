@@ -2,7 +2,7 @@
 
 Compose sets `mem_limit: 1g`, `read_only: true`, and tmpfs `/tmp`. Treat the memory number as a sharp knife: **too low and Docker SIGKILLs the process mid-upload**, leaving a half-written photo on disk. Too high just sits unused.
 
-The only persistent writes are the `/data` volume. Sharp and Next.js use `/tmp`. Do not drop the tmpfs.
+The only persistent writes are the `/data` volume. The root filesystem is read-only, so Compose mounts tmpfs on `/tmp` (256m, mode 1777). Sharp and Next.js write short-lived files there. Do not drop the tmpfs or bind-mount `/tmp` to disk — uploads will fail or land outside the vault. That 256m is RAM and counts toward `mem_limit`.
 
 Pixel count drives decode RAM, not file size. The 20 MB upload cap does not bound how large a JPEG can be in pixels.
 
