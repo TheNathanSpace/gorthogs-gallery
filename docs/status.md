@@ -82,7 +82,7 @@ The first complete slice is implemented and intended to be runnable:
 
 - `SERVER_ACTION_ORIGINS` is read at **image build** time because it lives in `next.config.ts`. Prefer forwarding `X-Forwarded-Host` on the proxy instead of baking hosts into the image.
 - `AUTH_SECRET` has a development fallback; production startup refuses a missing or placeholder secret.
-- Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders. Set `SEED_DEMO=false` before the first production boot for an empty vault.
+- Demo seed runs only on an empty miniatures table. Deleting all rows and restarting with `SEED_DEMO=true` will recreate placeholders. `docker-compose.yaml` defaults `SEED_DEMO` to false.
 - Native modules (`better-sqlite3`, `sharp`) need a Debian-based image; the Dockerfile uses `node:22-bookworm-slim`.
 - Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault, including the keeper password hash. `AUTH_SECRET` stays in compose/env; rotating it invalidates sessions, not the password.
 - Compose `mem_limit` is 1G. Too low OOMs an upload. Do not drop below 512M for 12MP photos. See [docs/memory.md](memory.md).
