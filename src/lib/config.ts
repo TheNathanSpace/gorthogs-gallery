@@ -40,6 +40,7 @@ const WEAK_SECRETS = new Set([
   "",
   "change-me-to-a-long-random-string",
   "dev-only-insecure-secret-change-me",
+  "replace-me--openssl-rand-base64-48",
 ])
 
 export type EnvMap = Record<string, string | undefined>

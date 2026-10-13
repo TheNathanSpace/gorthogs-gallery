@@ -35,7 +35,7 @@ Two Compose files:
 
 | File | Use |
 | --- | --- |
-| `docker-compose.yaml` | **Server deploy.** Copy it onto the host, edit the image tag, add a `.env`, `docker compose up -d`. Pulls a published GHCR image. No repo checkout, no build. |
+| `docker-compose.yaml` | **Server deploy.** Copy it onto the host, edit the `CHANGE` lines (`image`, `AUTH_SECRET`, `PUBLIC_BASE_URL`), `docker compose up -d`. Pulls a published GHCR image. No repo checkout, no build. |
 | `docker-compose.local.yaml` | **Local image build** from this repo: `docker compose -f docker-compose.local.yaml up --build`. |
 
 Both run the production image (`NODE_ENV=production`), cap RAM at **1G**, use a **read-only root** plus tmpfs `/tmp`, and store the vault in the `reliquary-data` volume. The process **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder.
@@ -62,20 +62,19 @@ In Docker the database is `/data/reliquary.sqlite` on the `reliquary-data` volum
 
 ### Deploy (copy `docker-compose.yaml`)
 
-Copy `docker-compose.yaml` onto the server. Next to it, create `.env`:
+Copy `docker-compose.yaml` onto the server and edit the lines marked `CHANGE`:
 
-```bash
-AUTH_SECRET=$(openssl rand -base64 48)
-PUBLIC_BASE_URL=https://minis.example.com
-```
+- `image:` — the GitHub Release tag or digest
+- `AUTH_SECRET` — output of `openssl rand -base64 48`
+- `PUBLIC_BASE_URL` — `https://your.domain`
 
-Edit `image:` to the GitHub Release tag (or digest). Then:
+Site title, locale, and the other keys sit in the same `environment:` block. A `.env` file still works if you prefer, but the intended setup is editing this file. Then:
 
 ```bash
 docker compose up -d
 ```
 
-Compose requires those two variables. It binds **127.0.0.1:3847**, sets `AUTH_COOKIE_SECURE=true` and `SEED_DEMO=false` unless you override them, and does not build from source.
+It binds **127.0.0.1:3847**, sets `AUTH_COOKIE_SECURE` and turns demo seed off, and does not build from source. The image refuses to boot if `AUTH_SECRET` is still the replace-me placeholder.
 
 The container speaks HTTP only. TLS and HSTS belong on Caddy, Traefik, or nginx. Point the proxy at `http://127.0.0.1:3847` (or the `reliquary` service on the same Docker network) and forward:
 
@@ -111,7 +110,7 @@ Do not create the GitHub Release by hand; the workflow does that. The image is:
 ghcr.io/<owner>/<repo>:v1.0.0
 ```
 
-The same digest is also tagged `:1.0.0`, `:1.0`, and `:latest` (not on pre-releases). On the server, set `image:` in `docker-compose.yaml` to that tag and `docker compose up -d`.
+The same digest is also tagged `:1.0.0`, `:1.0`, and `:latest` (not on pre-releases). On the server, set `image:` in `docker-compose.yaml` to that tag, fill in `AUTH_SECRET` and `PUBLIC_BASE_URL` in the same file, and `docker compose up -d`.
 
 The first package from a public GitHub repo is often **private** until you change it: GitHub → **Packages** → the image → **Package settings** → **Change visibility** → Public. Private repos stay private; `docker login ghcr.io` with a `read:packages` token.
 
@@ -169,7 +168,7 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | `THUMB_MAX_EDGE` | `640` | Long edge of library thumbnails. |
 | `SERVER_ACTION_ORIGINS` | unset | **Build-time.** Extra hosts for Server Action CSRF if the proxy does not forward `X-Forwarded-Host`. |
 
-Copy `.env.example` and fill it in. Never commit real secrets.
+For local `npm run dev`, copy `.env.example` to `.env.local`. On the server, edit `docker-compose.yaml` instead. Never commit real secrets.
 
 ### Generating `AUTH_SECRET`
 

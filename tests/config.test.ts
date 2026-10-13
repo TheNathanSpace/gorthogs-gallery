@@ -12,6 +12,11 @@ describe("fail-closed production config", () => {
       AUTH_SECRET: "change-me-to-a-long-random-string",
     })
     expect(errors.some((row) => row.includes("AUTH_SECRET"))).toBe(true)
+    expect(
+      productionConfigErrors({
+        AUTH_SECRET: "replace-me--openssl-rand-base64-48",
+      }).some((row) => row.includes("AUTH_SECRET"))
+    ).toBe(true)
   })
 
   it("does not require a password in the environment", () => {

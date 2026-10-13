@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-13 (docker-compose.yaml is the copy-paste deploy file)
+Last updated: 2026-10-13 (deploy Compose holds env values inline)
 
 ## Current state
 

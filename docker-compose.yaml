@@ -1,14 +1,10 @@
-# The Reliquary — copy this file onto the server.
+# The Reliquary — copy this file onto the server and edit the CHANGE lines.
 #
-# 1. Edit `image:` to the tag (or digest) from the GitHub Release.
-# 2. Next to this file, create `.env`:
+#   openssl rand -base64 48    # paste into AUTH_SECRET
+#   docker compose up -d
 #
-#      AUTH_SECRET=<output of: openssl rand -base64 48>
-#      PUBLIC_BASE_URL=https://minis.example.com
-#
-# 3. docker compose up -d
-# 4. Sign in at /login as admin / changeme and choose a lasting vault key
-#    before you open the reverse proxy. Until then, changeme works.
+# Sign in at /login as admin / changeme and choose a lasting vault key
+# before you open the reverse proxy.
 #
 # TLS and HSTS belong on Caddy, Traefik, or nginx. Point the proxy at
 # http://127.0.0.1:3847 (or the `reliquary` service on the same Docker
@@ -17,25 +13,25 @@
 
 services:
   reliquary:
-    image: ghcr.io/YOUR_GITHUB_USER/reliquary:v1.0.0
+    image: ghcr.io/YOUR_GITHUB_USER/reliquary:v1.0.0 # CHANGE
     ports:
       - "127.0.0.1:3847:3847"
     environment:
-      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env — openssl rand -base64 48}
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Set PUBLIC_BASE_URL to https://your.domain}
-      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      SITE_TITLE: ${SITE_TITLE:-The Reliquary}
-      SITE_TAGLINE: ${SITE_TAGLINE:-A vault of painted miniatures}
-      LOCALE: ${LOCALE:-en}
+      AUTH_SECRET: replace-me--openssl-rand-base64-48 # CHANGE
+      PUBLIC_BASE_URL: https://minis.example.com # CHANGE
+      AUTH_COOKIE_SECURE: "true"
+      ADMIN_USERNAME: admin
+      SITE_TITLE: The Reliquary
+      SITE_TAGLINE: A vault of painted miniatures
+      LOCALE: en
       DATA_DIR: /data
-      SEED_DEMO: ${SEED_DEMO:-false}
-      PWNED_PASSWORDS: ${PWNED_PASSWORDS:-true}
+      SEED_DEMO: "false"
+      PWNED_PASSWORDS: "true"
       # The keeper password is not set here. First login is changeme;
       # the lasting key is hashed in the volume. The image refuses to
-      # boot if AUTH_SECRET is a placeholder. If PUBLIC_BASE_URL is
-      # https://…, AUTH_COOKIE_SECURE must be true (the default here).
-      # Set PWNED_PASSWORDS=false if the host has no outbound HTTPS.
+      # boot if AUTH_SECRET is still the replace-me value. If
+      # PUBLIC_BASE_URL is https://…, AUTH_COOKIE_SECURE must be true.
+      # Set PWNED_PASSWORDS to "false" if the host has no outbound HTTPS.
     volumes:
       - reliquary-data:/data
     read_only: true
