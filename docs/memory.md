@@ -27,7 +27,7 @@ That is decode + resize only. The container also needs:
 
 | Limit | When |
 | --- | --- |
-| **1G** | Comfortable default (what `docker-compose.yml` ships) |
+| **1G** | Comfortable default (what both Compose files ship) |
 | **512M** | Floor if keepers actually upload 12MP photos |
 | Below 512M | Expect OOM kills on a 3000×4000 JPEG |
 

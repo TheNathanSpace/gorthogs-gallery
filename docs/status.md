@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-12 (GitHub tag builds GHCR image + Release)
+Last updated: 2026-10-13 (docker-compose.yaml is the copy-paste deploy file)
 
 ## Current state
 
@@ -14,7 +14,7 @@ The first complete slice is implemented and intended to be runnable:
 - SQLite + filesystem media under `DATA_DIR`
 - Demo seed (three labeled placeholder miniatures) when the miniatures table is empty
 - Rustic/fantasy theme with documented font/texture drop-ins; default follows the OS, a pick is saved in `localStorage`
-- Dockerfile, `docker-compose.yml` (1G cap, read-only root, tmpfs `/tmp`), `.env.example`
+- Dockerfile, `docker-compose.yaml` (copy-paste deploy), `docker-compose.local.yaml` (local build), `.env.example`
 - README as the central operations guide (including reverse-proxy deploy); [docs/memory.md](memory.md) for 3000×4000 RAM estimates
 - Drizzle Kit migrations in `drizzle/`, applied on boot
 - Night / parchment / high-contrast themes, thin English i18n, OG/robots/sitemap
@@ -87,5 +87,5 @@ The first complete slice is implemented and intended to be runnable:
 - Cloning: copy the `reliquary-data` volume after `docker compose stop`. That volume is the whole vault, including the keeper password hash. `AUTH_SECRET` stays in compose/env; rotating it invalidates sessions, not the password.
 - Compose `mem_limit` is 1G. Too low OOMs an upload. Do not drop below 512M for 12MP photos. See [docs/memory.md](memory.md).
 - Until the keeper sets a lasting key, `/login` accepts `changeme`. Set the key on a private network before publishing the proxy. There is no `ADMIN_PASSWORD` env.
-- Compose publishes `3847` for local use. Production should bind `127.0.0.1` or drop `ports` and put TLS/HSTS on the reverse proxy.
+- `docker-compose.yaml` binds `127.0.0.1:3847`. `docker-compose.local.yaml` publishes `3847` on all interfaces. TLS/HSTS stay on the reverse proxy.
 - CSP allows `'unsafe-inline'` scripts/styles because Next.js still emits them. Images are `'self'` plus `data:`/`blob:`. No third-party script hosts.

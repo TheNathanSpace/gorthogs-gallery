@@ -115,12 +115,7 @@ jobs:
 
           Digest: \`${DIGEST}\`
 
-          Run it with the published image instead of a local build:
-
-          \`\`\`bash
-          RELIQUARY_IMAGE=${IMAGE}:${TAG} \\
-            docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
-          \`\`\`
+          Copy \`docker-compose.yaml\` onto the server, set \`image:\` to \`${IMAGE}:${TAG}\`, add \`AUTH_SECRET\` and \`PUBLIC_BASE_URL\` in \`.env\`, then \`docker compose up -d\`.
 
           If this is the first image from a public repository, GitHub may keep the GHCR package private until you set it public: **Packages → the package → Package settings → Change visibility**.
 

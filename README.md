@@ -31,13 +31,14 @@ Open [http://127.0.0.1:3847](http://127.0.0.1:3847). Sign in at `/login` as `adm
 
 ## Docker
 
-```bash
-cp .env.example .env
-# set AUTH_SECRET to a long random value (openssl rand -base64 48)
-docker compose up --build
-```
+Two Compose files:
 
-Compose publishes **3847** for local use, caps RAM at **1G**, runs a **read-only root** plus tmpfs `/tmp`, and stores SQLite plus photographs in the `reliquary-data` volume. The image is production (`NODE_ENV=production`) and **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder.
+| File | Use |
+| --- | --- |
+| `docker-compose.yaml` | **Server deploy.** Copy it onto the host, edit the image tag, add a `.env`, `docker compose up -d`. Pulls a published GHCR image. No repo checkout, no build. |
+| `docker-compose.local.yaml` | **Local image build** from this repo: `docker compose -f docker-compose.local.yaml up --build`. |
+
+Both run the production image (`NODE_ENV=production`), cap RAM at **1G**, use a **read-only root** plus tmpfs `/tmp`, and store the vault in the `reliquary-data` volume. The process **refuses to boot** if `AUTH_SECRET` is missing or still a placeholder.
 
 Treat `mem_limit` carefully: too low and Docker kills the process mid-upload (exit 137). A 3000×4000 photo is ~46 MiB uncompressed; 1G is the comfortable default and **512M is the floor** for 12MP uploads. Pixel count drives RAM, not file size. Measured numbers: [docs/memory.md](docs/memory.md).
 
@@ -59,20 +60,41 @@ sqlite3 ./data/reliquary.sqlite "UPDATE keepers SET password_hash = NULL;"
 
 In Docker the database is `/data/reliquary.sqlite` on the `reliquary-data` volume. Sign in with `changeme` again and choose a new key.
 
-### Deploy behind a reverse proxy
+### Deploy (copy `docker-compose.yaml`)
 
-The container speaks HTTP only. TLS and HSTS belong on Caddy, Traefik, or nginx.
+Copy `docker-compose.yaml` onto the server. Next to it, create `.env`:
 
-1. Generate `AUTH_SECRET` and put it in `.env`. Never use the placeholder.
-2. Set `PUBLIC_BASE_URL=https://your.domain` and `AUTH_COOKIE_SECURE=true`. Production refuses to boot if the public URL is HTTPS and the cookie is not Secure.
-3. Set `SEED_DEMO=false` before the **first** start if you do not want placeholder miniatures.
-4. **Do not publish port 3847 on the public internet.** Bind `127.0.0.1:3847:3847`, or drop `ports:` and put the proxy on the same Docker network. Point the proxy at `http://reliquary:3847` (or `127.0.0.1:3847`) and forward:
-   - `X-Forwarded-Host` — the public hostname
-   - `X-Forwarded-Proto` — `https`
-5. Bring the stack up on a **private** network, sign in, set the lasting vault key, **then** open the proxy. Until that key is set, `changeme` works.
-6. Back up the `reliquary-data` volume on a schedule (see below). Give the volume disk headroom: each upload keeps original + display WebP + thumb.
+```bash
+AUTH_SECRET=$(openssl rand -base64 48)
+PUBLIC_BASE_URL=https://minis.example.com
+```
+
+Edit `image:` to the GitHub Release tag (or digest). Then:
+
+```bash
+docker compose up -d
+```
+
+Compose requires those two variables. It binds **127.0.0.1:3847**, sets `AUTH_COOKIE_SECURE=true` and `SEED_DEMO=false` unless you override them, and does not build from source.
+
+The container speaks HTTP only. TLS and HSTS belong on Caddy, Traefik, or nginx. Point the proxy at `http://127.0.0.1:3847` (or the `reliquary` service on the same Docker network) and forward:
+
+- `X-Forwarded-Host` — the public hostname
+- `X-Forwarded-Proto` — `https`
+
+Sign in on a **private** network (`admin` / `changeme`), set the lasting vault key, **then** open the proxy. Back up the `reliquary-data` volume on a schedule (see below). Give the volume disk headroom: each upload keeps original + display WebP + thumb.
 
 `SERVER_ACTION_ORIGINS` is a **build-time** fallback if the proxy cannot forward `X-Forwarded-Host`. Prefer forwarding the headers.
+
+### Local image build
+
+```bash
+cp .env.example .env
+# set AUTH_SECRET to a long random value
+docker compose -f docker-compose.local.yaml up --build
+```
+
+This publishes port **3847** on all interfaces, seeds demo miniatures by default, and does not require `PUBLIC_BASE_URL`.
 
 ### GitHub releases
 
@@ -89,13 +111,7 @@ Do not create the GitHub Release by hand; the workflow does that. The image is:
 ghcr.io/<owner>/<repo>:v1.0.0
 ```
 
-The same digest is also tagged `:1.0.0`, `:1.0`, and `:latest` (not on pre-releases). Pull and run:
-
-```bash
-docker pull ghcr.io/<owner>/<repo>:v1.0.0
-RELIQUARY_IMAGE=ghcr.io/<owner>/<repo>:v1.0.0 \
-  docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
-```
+The same digest is also tagged `:1.0.0`, `:1.0`, and `:latest` (not on pre-releases). On the server, set `image:` in `docker-compose.yaml` to that tag and `docker compose up -d`.
 
 The first package from a public GitHub repo is often **private** until you change it: GitHub → **Packages** → the image → **Package settings** → **Change visibility** → Public. Private repos stay private; `docker login ghcr.io` with a `read:packages` token.
 
@@ -139,7 +155,7 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | `AUTH_SECRET` | (dev fallback) | **Required in production.** Signs the keeper session cookie. |
 | `ADMIN_USERNAME` | `admin` | The only login name. Not a secret. The password is not an env var (see Keeper login). |
 | `PWNED_PASSWORDS` | `true` | Check new vault keys against Have I Been Pwned (k-anonymity). Local common-password list always runs. |
-| `AUTH_COOKIE_SECURE` | `false` | Must be `true` when served over HTTPS. |
+| `AUTH_COOKIE_SECURE` | `false` (`true` in `docker-compose.yaml`) | Must be `true` when served over HTTPS. |
 | `AUTH_COOKIE_NAME` | `reliquary_session` | Session cookie name. |
 | `SESSION_TTL_SECONDS` | `604800` | Session lifetime (7 days). |
 | `DATA_DIR` | `./data` (`/data` in Docker) | SQLite database and uploaded media. |
@@ -147,7 +163,7 @@ Do not copy `/data` while the container is writing. `docker compose stop` first.
 | `LOCALE` | `en` | UI language. English catalog ships first. Dates use `Intl` for this locale. |
 | `SITE_TITLE` | `The Reliquary` | Header and page titles. |
 | `SITE_TAGLINE` | `A vault of painted miniatures` | Subtitle and metadata description. |
-| `SEED_DEMO` | `true` | Seed labeled placeholder miniatures if the miniatures table is empty. Set `false` before first production boot for an empty vault. |
+| `SEED_DEMO` | `true` (`false` in `docker-compose.yaml`) | Seed labeled placeholder miniatures if the miniatures table is empty. |
 | `MAX_UPLOAD_BYTES` | `20971520` | Per-file upload cap (20 MB). |
 | `DISPLAY_MAX_EDGE` | `2400` | Long edge of the lightbox WebP. |
 | `THUMB_MAX_EDGE` | `640` | Long edge of library thumbnails. |
@@ -202,13 +218,13 @@ Fonts, colors, and optional textures: see [docs/theming.md](docs/theming.md).
 
 ## Image digest pinning (optional)
 
-Local compose uses `image: reliquary:local` so `docker compose up --build` rebuilds from this repo. A GitHub Release lists the GHCR digest for that tag. Pin it:
+A GitHub Release lists the GHCR digest. In `docker-compose.yaml`, set:
 
 ```yaml
 image: ghcr.io/<owner>/<repo>@sha256:…
 ```
 
-and use `docker-compose.ghcr.yml` (or drop `build:`). Do not commit a digest you have not verified.
+Do not commit a digest you have not verified.
 
 ## Stack
 

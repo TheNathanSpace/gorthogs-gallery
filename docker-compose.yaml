@@ -1,0 +1,63 @@
+# The Reliquary — copy this file onto the server.
+#
+# 1. Edit `image:` to the tag (or digest) from the GitHub Release.
+# 2. Next to this file, create `.env`:
+#
+#      AUTH_SECRET=<output of: openssl rand -base64 48>
+#      PUBLIC_BASE_URL=https://minis.example.com
+#
+# 3. docker compose up -d
+# 4. Sign in at /login as admin / changeme and choose a lasting vault key
+#    before you open the reverse proxy. Until then, changeme works.
+#
+# TLS and HSTS belong on Caddy, Traefik, or nginx. Point the proxy at
+# http://127.0.0.1:3847 (or the `reliquary` service on the same Docker
+# network) and forward X-Forwarded-Host and X-Forwarded-Proto.
+# Drop `ports` if the proxy shares this Compose network.
+
+services:
+  reliquary:
+    image: ghcr.io/YOUR_GITHUB_USER/reliquary:v1.0.0
+    ports:
+      - "127.0.0.1:3847:3847"
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env — openssl rand -base64 48}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Set PUBLIC_BASE_URL to https://your.domain}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      SITE_TITLE: ${SITE_TITLE:-The Reliquary}
+      SITE_TAGLINE: ${SITE_TAGLINE:-A vault of painted miniatures}
+      LOCALE: ${LOCALE:-en}
+      DATA_DIR: /data
+      SEED_DEMO: ${SEED_DEMO:-false}
+      PWNED_PASSWORDS: ${PWNED_PASSWORDS:-true}
+      # The keeper password is not set here. First login is changeme;
+      # the lasting key is hashed in the volume. The image refuses to
+      # boot if AUTH_SECRET is a placeholder. If PUBLIC_BASE_URL is
+      # https://…, AUTH_COOKIE_SECURE must be true (the default here).
+      # Set PWNED_PASSWORDS=false if the host has no outbound HTTPS.
+    volumes:
+      - reliquary-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    # Pixel count drives RAM. 1G is the comfortable default; 512M is
+    # the floor for 12MP uploads. Too low: Docker SIGKILL (exit 137).
+    # docs/memory.md
+    mem_limit: 1g
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3847/api/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  reliquary-data:
