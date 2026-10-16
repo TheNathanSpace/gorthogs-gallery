@@ -240,4 +240,4 @@ npm run typecheck
 npm test
 ```
 
-Implementation status and remaining work live in [docs/status.md](docs/status.md).
+Implementation status and remaining work live in [docs/status.md](docs/status.md). Product requirements and IDs live in [docs/requirements.md](docs/requirements.md).

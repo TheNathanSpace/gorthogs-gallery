@@ -1,48 +1,101 @@
 # Status
 
-Last updated: 2026-10-13 (deploy Compose holds env values inline)
+Last updated: 2026-10-16 (requirements spec and pickup status match the documentation rules)
+
+Latest change: Added [docs/requirements.md](requirements.md) as the product source of truth, reshaped this file with a status table, UI map, and next session, and pointed the README at both.
 
 ## Current state
 
-The first complete slice is implemented and intended to be runnable:
+The first complete slice is implemented and intended to be runnable. Requirement IDs below are defined in [docs/requirements.md](requirements.md).
 
-- Public justified photo library (newest first, infinite scroll), miniature cards, and a dense table
-- Keyword search with field scope (all / name / painter / source / notes)
-- Miniature detail pages with full-size lightbox
-- Single keeper session: `ADMIN_USERNAME` from env, password hashed in SQLite after first login (`changeme` until then), signed httpOnly cookie
-- Create / edit / delete miniatures and photographs
-- SQLite + filesystem media under `DATA_DIR`
-- Demo seed (three labeled placeholder miniatures) when the miniatures table is empty
-- Rustic/fantasy theme with documented font/texture drop-ins; default follows the OS, a pick is saved in `localStorage`
-- Dockerfile, `docker-compose.yaml` (copy-paste deploy), `docker-compose.local.yaml` (local build), `.env.example`
-- README as the central operations guide (including reverse-proxy deploy); [docs/memory.md](memory.md) for 3000×4000 RAM estimates
-- Drizzle Kit migrations in `drizzle/`, applied on boot
-- Night / parchment / high-contrast themes, thin English i18n, OG/robots/sitemap
-- `/api/health` vs `/api/ready`, request logs, CSP and related headers
-- CI: lint, typecheck, tests (lockout, search, pagination, rejected uploads, password policy)
-- Tag `vMAJOR.MINOR.PATCH` on GitHub: tests, multi-arch image to GHCR, GitHub Release with a commit changelog
+- Public justified photo library (newest first, infinite scroll), miniature cards, and a dense table (LIB-02, LIB-03, LIB-04, LIB-07)
+- Keyword search with field scope (QRY-01, QRY-02, QRY-03)
+- Miniature detail pages with a full-size lightbox (LIB-05, LIB-06)
+- Single keeper session: `ADMIN_USERNAME` from env, password hashed in SQLite after first login (`changeme` until then), signed httpOnly cookie (ADM-01, ADM-02, ADM-03)
+- Create / edit / delete entries and photographs (ADM-04, ADM-05)
+- SQLite + filesystem media under `DATA_DIR` (DB-01 through DB-07)
+- Demo seed (three labeled placeholder miniatures) when the miniatures table is empty (DB-06)
+- Rustic/fantasy theme with documented font/texture drop-ins; default follows the OS, a pick is saved in `localStorage` (THM-01, THM-02, THM-03)
+- Dockerfile, `docker-compose.yaml` (copy-paste deploy), `docker-compose.local.yaml` (local build), `.env.example` (OPS-01, OPS-03)
+- README as the operations guide (including reverse-proxy deploy); [docs/memory.md](memory.md) for 3000×4000 RAM estimates (OPS-05)
+- Drizzle Kit migrations in `drizzle/`, applied on boot (OPS-06)
+- Night / parchment / high-contrast themes, thin English i18n, OG/robots/sitemap (THM-02, THM-04)
+- `/api/health` vs `/api/ready`, request logs, CSP and related headers (OPS-07, OPS-08)
+- CI: lint, typecheck, tests (lockout, search, pagination, rejected uploads, password policy) (OPS-09)
+- Tag `vMAJOR.MINOR.PATCH` on GitHub: tests, multi-arch image to GHCR, GitHub Release with a commit changelog (OPS-10)
 
-## Requirements (from the original brief)
+## Status table
 
-| Requirement | Status |
-| --- | --- |
-| Per-miniature name, painter, online source, pictures | Done |
-| Detailed views with full-size images | Done (lightbox + `/media/.../original`) |
-| Wide whole-library views | Done (Photos wall, Miniatures grid, dense Table) |
-| Google Photos-like browsing | Done (dense rows, newest first, infinite scroll, lightbox, `?photo=`) |
-| Keyword search with field narrowing | Done (`q` + `field`) |
-| Dense table of all entry data | Done (`?view=table`) |
-| Simple one-account admin login | Done (first login `changeme`, then a hash in the vault) |
-| Public browse without accounts | Done |
-| Admin can create entries | Done (edit/delete included so the ledger is usable) |
-| Modern interaction, rustic/fantasy theme | Done |
-| Placeholder assets with drop-in instructions | Done (`docs/theming.md`) |
-| Single Docker container | Done |
-| Config via environment variables | Done (password is not an env var) |
-| Example compose file | Done |
-| Reverse-proxy friendly (no TLS in-app) | Done |
-| README as source of truth | Done |
-| `docs/` plus this status file | Done |
+Must rows are the shipped slice. Stretch rows are open.
+
+| ID | Level | State | Note |
+| --- | --- | --- | --- |
+| LIB-01 | Must | Done | Public browse, no visitor account |
+| LIB-02 | Must | Done | Photo wall, newest first, infinite scroll |
+| LIB-03 | Must | Done | `?view=collection` |
+| LIB-04 | Must | Done | `?view=table` |
+| LIB-05 | Must | Done | `/miniatures/[slug]` |
+| LIB-06 | Must | Done | Lightbox, arrows, original download, `?photo=` |
+| LIB-07 | Must | Done | Covered by LIB-02 and LIB-06 |
+| LIB-08 | Stretch | Open | Lightbox swipe |
+| LIB-09 | Stretch | Open | Public RSS or JSON feed |
+| QRY-01 | Must | Done | Keyword search |
+| QRY-02 | Must | Done | `field`: all, name, painter, source, notes |
+| QRY-03 | Must | Done | Painter chips |
+| DB-01 | Must | Done | Name, painter, source, photographs |
+| DB-02 | Must | Done | SQLite + files on disk |
+| DB-03 | Must | Done | Painter is free text |
+| DB-04 | Must | Done | Optional source name + URL |
+| DB-05 | Must | Done | Optional notes |
+| DB-06 | Must | Done | Placeholder seed on an empty table |
+| DB-07 | Must | Done | Original + display WebP + thumb WebP |
+| DB-08 | Stretch | Open | EXIF lens and capture date |
+| ADM-01 | Must | Done | One keeper; username from env |
+| ADM-02 | Must | Done | `changeme`, then scrypt hash and cookie session |
+| ADM-03 | Must | Done | 15+ characters, local list, optional HIBP |
+| ADM-04 | Must | Done | Create, edit, delete, cover, button reorder |
+| ADM-05 | Must | Done | Change key on the ledger |
+| ADM-06 | Stretch | Open | Drag-and-drop reorder; buttons satisfy ADM-04 |
+| ADM-07 | Stretch | Open | Bulk import of a folder |
+| ADM-08 | Stretch | Open | Multiple keepers |
+| THM-01 | Must | Done | Rustic/fantasy skin |
+| THM-02 | Must | Done | Night, parchment, high contrast |
+| THM-03 | Must | Done | Drop-ins in [docs/theming.md](theming.md) |
+| THM-04 | Must | Done | `LOCALE`, English catalog, `Intl` dates |
+| OPS-01 | Must | Done | One container, HTTP only |
+| OPS-02 | Must | Done | Env config; password stays in the vault |
+| OPS-03 | Must | Done | Deploy Compose and local build Compose |
+| OPS-04 | Must | Done | TLS on the reverse proxy |
+| OPS-05 | Must | Done | README, this file, and the requirements spec |
+| OPS-06 | Must | Done | Migrations on boot |
+| OPS-07 | Must | Done | `/api/health` and `/api/ready` |
+| OPS-08 | Must | Done | Fail-closed `AUTH_SECRET`, security headers |
+| OPS-09 | Must | Done | Lint, typecheck, tests |
+| OPS-10 | Must | Done | Version tag publishes GHCR and a GitHub Release |
+
+## UI map
+
+| Surface | Who | What it shows |
+| --- | --- | --- |
+| `/` | Visitor | Photo wall. `?view=collection` cards. `?view=table` dense table. `?q` and `?field` search. `?photo=` lightbox. |
+| `/miniatures/[slug]` | Visitor | Name, painter, source, notes, gallery, lightbox. Keeper sees edit and delete. |
+| `/login` | Visitor | Keeper sign-in and the first lasting-key step. |
+| `/admin` | Keeper | Ledger list, new-miniature link, change-key form. |
+| `/admin/miniatures/new` | Keeper | Create form: fields, photographs, cover. |
+| `/admin/miniatures/[id]/edit` | Keeper | Edit fields, photographs, cover, button order, delete. |
+| `/media/[id]/thumb` | Visitor | Thumbnail WebP. |
+| `/media/[id]/display` | Visitor | Lightbox WebP. |
+| `/media/[id]/original` | Visitor | Original upload. |
+| `/api/library/photos` | Visitor | Next photo-wall page. |
+| `/api/health` | Probe | Liveness. |
+| `/api/ready` | Probe | Readiness. Compose uses this. |
+| `/sitemap.xml`, `/robots.txt`, Open Graph images | Crawler | Discovery and share cards. |
+
+Header: Library, theme toggle, and either Keeper or Ledger plus Sign out.
+
+## Next session
+
+Start at **ADM-06**. The admin photo strip on `/admin/miniatures/[id]/edit` already reorders with buttons and stores `sortOrder`. Add drag-and-drop on that strip without changing the stored order contract. Leave LIB-08, LIB-09, DB-08, ADM-07, and ADM-08 until that lands.
 
 ## Decisions locked for this slice
 
@@ -56,27 +109,7 @@ The first complete slice is implemented and intended to be runnable:
 - Vault keys: 15+ characters, no composition rules, local common-password list, optional HIBP k-anonymity
 - Port `3847` locally and in the container; production should not publish it on the public internet
 - Default site title “The Reliquary”
-
-## Todos / later
-
-- [x] Keyword search with per-field scope
-- [x] Dense table view of every entry
-- [x] Newest photographs at the top of the wall
-- [x] Infinite scroll on the photo library
-- [ ] Drag-and-drop reorder in the admin photo strip (buttons work today)
-- [ ] Touch swipe on the lightbox
-- [ ] Optional public RSS / JSON feed of new entries
-- [ ] EXIF capture (lens, date) if you want shooting notes stored automatically
-- [ ] Bulk import of a folder of photos
-- [ ] Multiple keepers, if the vault ever needs more than one login
-- [x] Automated tests around upload, field search, newest-first pagination, and auth lockout
-- [x] Fail-closed production boot, security headers, skip link / focus trap / reduced motion
-- [x] Drizzle Kit migrations on boot
-- [x] Night / parchment / high-contrast + header toggle
-- [x] Thin i18n (LOCALE, English catalog, Intl dates)
-- [x] Open Graph cards, robots.txt, sitemap
-- [x] Request logs, SQLite+disk health, `/api/ready` vs `/api/health`
-- [x] Read-only root, tmpfs `/tmp`, memory limit with caution
+- [docs/requirements.md](requirements.md) is the product source of truth. This file is pickup status. The README is the operations guide.
 
 ## Known caveats
 
