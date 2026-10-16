@@ -1,8 +1,8 @@
 # Status
 
-Last updated: 2026-10-16 (requirements spec and pickup status match the documentation rules)
+Last updated: 2026-10-16 (typecheck generates Next.js route types before tsc)
 
-Latest change: Added [docs/requirements.md](requirements.md) as the product source of truth, reshaped this file with a status table, UI map, and next session, and pointed the README at both.
+Latest change: `npm run typecheck` runs `next typegen` before `tsc`, so CI can see generated helpers such as `LayoutProps`.
 
 ## Current state
 
