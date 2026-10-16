@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 
 import { requireAdmin } from "@/lib/auth"
 import { t } from "@/lib/i18n"
+import { setHonoredEmissary } from "@/lib/honored"
 import {
   createMiniature,
   deleteMiniature,
@@ -91,6 +92,28 @@ export async function updateMiniatureAction(
     redirect(`/miniatures/${updated.slug}`)
   } catch (error) {
     return { error: error instanceof Error ? error.message : t("saveFailed") }
+  }
+}
+
+export async function setHonoredEmissaryAction(
+  _prev: MutationState,
+  formData: FormData
+): Promise<MutationState> {
+  await requireAdmin()
+  const raw = String(formData.get("miniatureId") ?? "").trim()
+  const miniatureId = raw === "" ? null : raw
+  try {
+    const result = await setHonoredEmissary(miniatureId)
+    if (!result.ok) return { error: t("honorMissing") }
+    revalidatePath("/")
+    revalidatePath("/admin")
+    if (result.previousSlug) revalidatePath(`/miniatures/${result.previousSlug}`)
+    if (result.nextSlug && result.nextSlug !== result.previousSlug) {
+      revalidatePath(`/miniatures/${result.nextSlug}`)
+    }
+    return {}
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : t("honorFailed") }
   }
 }
 

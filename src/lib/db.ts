@@ -84,6 +84,8 @@ export function resetDbForTests() {
 
 export function wipeVaultForTests() {
   const sqlite = getSqlite()
-  sqlite.exec("DELETE FROM photos; DELETE FROM miniatures; DELETE FROM keepers;")
+  sqlite.exec(
+    "UPDATE honored_emissary SET miniature_id = NULL; DELETE FROM photos; DELETE FROM miniatures; DELETE FROM keepers;"
+  )
   globalForDb.__reliquarySeed = Promise.resolve()
 }

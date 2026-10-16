@@ -58,6 +58,14 @@ export const keepers = sqliteTable("keepers", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 })
 
+/** One row (`id` = 1). `miniatureId` is null when no miniature is honored. */
+export const honoredEmissary = sqliteTable("honored_emissary", {
+  id: integer("id").primaryKey(),
+  miniatureId: text("miniature_id").references(() => miniatures.id, {
+    onDelete: "set null",
+  }),
+})
+
 export type Miniature = typeof miniatures.$inferSelect
 export type Photo = typeof photos.$inferSelect
 export type Keeper = typeof keepers.$inferSelect

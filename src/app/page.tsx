@@ -3,11 +3,13 @@ import { preload } from "react-dom"
 
 import { EmptyState } from "@/components/gallery/empty-state"
 import { GallerySkeleton } from "@/components/gallery/gallery-skeleton"
+import { HonoredEmissaryBanner } from "@/components/gallery/honored-emissary"
 import { LibraryTable } from "@/components/gallery/library-table"
 import { LibraryToolbar } from "@/components/gallery/library-toolbar"
 import { LibraryView } from "@/components/gallery/library-view"
 import { MiniatureCard } from "@/components/gallery/miniature-card"
 import { isAdmin } from "@/lib/auth"
+import { getHonoredEmissary } from "@/lib/honored"
 import {
   countGalleryPhotos,
   getGalleryPhotoById,
@@ -16,7 +18,7 @@ import {
   listPainters,
 } from "@/lib/miniatures"
 import { parseLibraryView, parseSearchField, PHOTO_PAGE_SIZE } from "@/lib/search"
-import { photoUrl } from "@/lib/urls"
+import { coverOf, photoUrl } from "@/lib/urls"
 
 export default function Home({
   searchParams,
@@ -53,15 +55,18 @@ async function Library({
   const field = parseSearchField(params.field)
   const filters = { q: q || undefined, field }
 
-  const [page, miniatures, painters, admin, photoCount] = await Promise.all([
+  const [page, miniatures, painters, admin, photoCount, honored] = await Promise.all([
     listGalleryPhotosPage({ ...filters, limit: PHOTO_PAGE_SIZE }),
     listMiniatures(filters),
     listPainters(),
     isAdmin(),
     countGalleryPhotos(filters),
+    getHonoredEmissary(),
   ])
 
   let photos = page.photos
+  const honoredCover = honored ? coverOf(honored.photos) : undefined
+  if (honoredCover) preload(photoUrl(honoredCover.id, "display"), { as: "image" })
   if (view === "photos") {
     for (const photo of photos.slice(0, 8)) {
       preload(photoUrl(photo.id, "thumb"), { as: "image" })
@@ -74,6 +79,7 @@ async function Library({
 
   return (
     <>
+      {honored ? <HonoredEmissaryBanner miniature={honored} /> : null}
       <LibraryToolbar
         view={view}
         q={q}

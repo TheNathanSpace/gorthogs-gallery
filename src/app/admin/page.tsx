@@ -4,8 +4,11 @@ import { Suspense } from "react"
 
 import { ChangePasswordForm } from "@/components/admin/change-password-form"
 import { DeleteMiniatureButton } from "@/components/admin/delete-miniature-button"
+import { HonoredEmissaryForm } from "@/components/admin/honored-emissary-form"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireAdmin } from "@/lib/auth"
+import { getHonoredEmissary } from "@/lib/honored"
 import { t, plural } from "@/lib/i18n"
 import { listMiniatures } from "@/lib/miniatures"
 import { coverOf, miniaturePath, photoUrl } from "@/lib/urls"
@@ -29,7 +32,7 @@ export default function AdminPage() {
 
 async function Ledger() {
   await requireAdmin()
-  const entries = await listMiniatures()
+  const [entries, honored] = await Promise.all([listMiniatures(), getHonoredEmissary()])
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
@@ -46,6 +49,27 @@ async function Ledger() {
           {t("newMiniature")}
         </Button>
       </div>
+
+      {entries.length > 0 ? (
+        <section className="vault-frame mb-6 rounded-md bg-card/75 p-4 sm:p-5">
+          <h2 className="font-display text-xl text-gold">{t("honoredEmissary")}</h2>
+          <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+            {t("honoredEmissaryIntro")}
+          </p>
+          <p className="mt-3 text-sm">
+            {honored ? t("honoredCurrent", { name: honored.name }) : t("honoredCurrentNone")}
+          </p>
+          <HonoredEmissaryForm
+            key={honored?.id ?? "none"}
+            currentId={honored?.id ?? null}
+            entries={entries.map((entry) => ({
+              id: entry.id,
+              name: entry.name,
+              painterName: entry.painterName,
+            }))}
+          />
+        </section>
+      ) : null}
 
       {entries.length === 0 ? (
         <div className="vault-frame rounded-md bg-card/70 px-6 py-10 text-center">
@@ -74,12 +98,15 @@ async function Ledger() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <Link
-                    href={miniaturePath(entry.slug)}
-                    className="font-display text-lg text-gold hover:underline"
-                  >
-                    {entry.name}
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={miniaturePath(entry.slug)}
+                      className="font-display text-lg text-gold hover:underline"
+                    >
+                      {entry.name}
+                    </Link>
+                    {entry.id === honored?.id ? <Badge>{t("honoredEmissary")}</Badge> : null}
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     {entry.painterName}
                     {entry.sourceName ? ` · ${entry.sourceName}` : ""} ·{" "}

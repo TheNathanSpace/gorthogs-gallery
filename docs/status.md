@@ -1,8 +1,8 @@
 # Status
 
-Last updated: 2026-10-16 (typecheck generates Next.js route types before tsc)
+Last updated: 2026-10-16 (Honored Emissary can be named, cleared, and replaced)
 
-Latest change: `npm run typecheck` runs `next typegen` before `tsc`, so CI can see generated helpers such as `LayoutProps`.
+Latest change: The keeper can name one existing miniature as the Honored Emissary, clear that choice, or name another. The library shows the current choice in a banner.
 
 ## Current state
 
@@ -13,6 +13,7 @@ The first complete slice is implemented and intended to be runnable. Requirement
 - Miniature detail pages with a full-size lightbox (LIB-05, LIB-06)
 - Single keeper session: `ADMIN_USERNAME` from env, password hashed in SQLite after first login (`changeme` until then), signed httpOnly cookie (ADM-01, ADM-02, ADM-03)
 - Create / edit / delete entries and photographs (ADM-04, ADM-05)
+- Honored Emissary: one miniature named from the ledger, shown in a library banner, and cleared or replaced later (LIB-10, ADM-09)
 - SQLite + filesystem media under `DATA_DIR` (DB-01 through DB-07)
 - Demo seed (three labeled placeholder miniatures) when the miniatures table is empty (DB-06)
 - Rustic/fantasy theme with documented font/texture drop-ins; default follows the OS, a pick is saved in `localStorage` (THM-01, THM-02, THM-03)
@@ -39,6 +40,7 @@ Must rows are the shipped slice. Stretch rows are open.
 | LIB-07 | Must | Done | Covered by LIB-02 and LIB-06 |
 | LIB-08 | Stretch | Open | Lightbox swipe |
 | LIB-09 | Stretch | Open | Public RSS or JSON feed |
+| LIB-10 | Must | Done | Library banner for the Honored Emissary |
 | QRY-01 | Must | Done | Keyword search |
 | QRY-02 | Must | Done | `field`: all, name, painter, source, notes |
 | QRY-03 | Must | Done | Painter chips |
@@ -58,6 +60,7 @@ Must rows are the shipped slice. Stretch rows are open.
 | ADM-06 | Stretch | Open | Drag-and-drop reorder; buttons satisfy ADM-04 |
 | ADM-07 | Stretch | Open | Bulk import of a folder |
 | ADM-08 | Stretch | Open | Multiple keepers |
+| ADM-09 | Must | Done | Name, clear, or replace the Honored Emissary |
 | THM-01 | Must | Done | Rustic/fantasy skin |
 | THM-02 | Must | Done | Night, parchment, high contrast |
 | THM-03 | Must | Done | Drop-ins in [docs/theming.md](theming.md) |
@@ -77,10 +80,10 @@ Must rows are the shipped slice. Stretch rows are open.
 
 | Surface | Who | What it shows |
 | --- | --- | --- |
-| `/` | Visitor | Photo wall. `?view=collection` cards. `?view=table` dense table. `?q` and `?field` search. `?photo=` lightbox. |
-| `/miniatures/[slug]` | Visitor | Name, painter, source, notes, gallery, lightbox. Keeper sees edit and delete. |
+| `/` | Visitor | Honored Emissary banner when one is named. Photo wall. `?view=collection` cards. `?view=table` dense table. `?q` and `?field` search. `?photo=` lightbox. |
+| `/miniatures/[slug]` | Visitor | Name, painter, source, notes, gallery, lightbox. The eyebrow reads Honored Emissary when this miniature holds the honor. Keeper sees edit and delete. |
 | `/login` | Visitor | Keeper sign-in and the first lasting-key step. |
-| `/admin` | Keeper | Ledger list, new-miniature link, change-key form. |
+| `/admin` | Keeper | Ledger list, Honored Emissary picker, new-miniature link, change-key form. |
 | `/admin/miniatures/new` | Keeper | Create form: fields, photographs, cover. |
 | `/admin/miniatures/[id]/edit` | Keeper | Edit fields, photographs, cover, button order, delete. |
 | `/media/[id]/thumb` | Visitor | Thumbnail WebP. |

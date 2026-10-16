@@ -15,6 +15,13 @@
       "when": 1791816331426,
       "tag": "0001_keepers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792134991966,
+      "tag": "0002_honored_emissary",
+      "breakpoints": true
     }
   ]
 }

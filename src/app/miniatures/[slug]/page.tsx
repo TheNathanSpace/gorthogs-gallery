@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { isAdmin } from "@/lib/auth"
 import { SITE_TITLE } from "@/lib/config"
+import { getHonoredEmissary } from "@/lib/honored"
 import { t, plural } from "@/lib/i18n"
 import { getMiniatureBySlug } from "@/lib/miniatures"
 import { absoluteUrl } from "@/lib/site-url"
@@ -74,9 +75,13 @@ async function Detail({
 }) {
   const { slug } = await params
   const { photo: photoId } = await searchParams
-  const miniature = await getMiniatureBySlug(slug)
+  const [miniature, admin, honored] = await Promise.all([
+    getMiniatureBySlug(slug),
+    isAdmin(),
+    getHonoredEmissary(),
+  ])
   if (!miniature) notFound()
-  const admin = await isAdmin()
+  const isHonored = honored?.id === miniature.id
   const galleryPhotos = miniature.photos.map((photo) => ({
     ...photo,
     miniatureName: miniature.name,
@@ -94,7 +99,7 @@ async function Detail({
       <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,0.9fr)] lg:items-end">
         <div>
           <p className="font-display text-[0.7rem] tracking-[0.32em] text-gold/80 uppercase">
-            {t("miniatureEyebrow")}
+            {isHonored ? t("honoredEmissary") : t("miniatureEyebrow")}
           </p>
           <h1 className="font-display mt-1 text-4xl text-gold sm:text-5xl">{miniature.name}</h1>
           <p className="mt-3 text-lg">

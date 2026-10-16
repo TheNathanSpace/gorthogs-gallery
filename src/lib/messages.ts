@@ -120,6 +120,20 @@ export const en = {
   tooManyAttempts: "Too many attempts. Wait a few minutes and try the vault key again.",
   badCredentials: "The vault does not recognize that name or key.",
 
+  honoredEmissary: "Honored Emissary",
+  honoredEmissaryIntro:
+    "Choose one existing miniature to stand at the head of the library. Choose None to take the honor down. You can name a different miniature later.",
+  honoredChoose: "Miniature",
+  honoredNone: "None",
+  honoredCurrent: "Currently honored: {name}",
+  honoredCurrentNone: "No miniature is honored.",
+  saveHonor: "Save honor",
+  savingHonor: "Saving honor…",
+  honorSaved: "The Honored Emissary is updated.",
+  honorMissing: "That miniature is not in the vault.",
+  honorFailed: "Could not update the Honored Emissary.",
+  viewHonoredEntry: "View the entry",
+
   keepersLedger: "Keeper's ledger",
   catalog: "Catalog",
   catalogIntro: "Create and tend entries. The public library updates as soon as you save.",

@@ -8,10 +8,10 @@ IDs are stable. **Must** items are the shipped slice. **Stretch** items are late
 
 | Path | Who | Purpose |
 | --- | --- | --- |
-| `/` | Visitor | Whole library. Default is the photo wall. `?view=collection` is miniature cards. `?view=table` is the dense table. `?q` and `?field` filter. `?photo=<id>` opens the lightbox. |
-| `/miniatures/[slug]` | Visitor | One miniature: metadata and a large gallery. A signed-in keeper also sees edit and delete. |
+| `/` | Visitor | Whole library. When a keeper has named an Honored Emissary, that miniature is shown in a banner above the shelves. Default is the photo wall. `?view=collection` is miniature cards. `?view=table` is the dense table. `?q` and `?field` filter. `?photo=<id>` opens the lightbox. |
+| `/miniatures/[slug]` | Visitor | One miniature: metadata and a large gallery. If it is the Honored Emissary, the eyebrow says so. A signed-in keeper also sees edit and delete. |
 | `/login` | Visitor | Keeper sign-in. First visit accepts `changeme` and asks for a lasting key. |
-| `/admin` | Keeper | Ledger: every miniature, a link to create one, and the change-key form. |
+| `/admin` | Keeper | Ledger: every miniature, the Honored Emissary picker, a link to create one, and the change-key form. |
 | `/admin/miniatures/new` | Keeper | Create a miniature and its photographs. |
 | `/admin/miniatures/[id]/edit` | Keeper | Edit fields, replace or delete photographs, choose the cover, reorder with buttons. |
 | `/media/[id]/thumb` | Visitor | Library thumbnail WebP. |
@@ -37,6 +37,7 @@ Header links: Library, theme, and either Keeper (`/login`) or Ledger plus Sign o
 | LIB-07 | Must | Browsing is Google Photos-like: dense rows, newest first, infinite scroll, a lightbox, and a shareable `?photo=` link. LIB-02 and LIB-06 carry this. |
 | LIB-08 | Stretch | Touch swipe moves between photographs in the lightbox. |
 | LIB-09 | Stretch | A public RSS or JSON feed lists new entries. |
+| LIB-10 | Must | When a keeper has named an Honored Emissary, every library view shows that miniature in a banner above the shelves, including during search. Clearing the honor removes the banner. |
 
 ## Search
 
@@ -71,6 +72,7 @@ Header links: Library, theme, and either Keeper (`/login`) or Ledger plus Sign o
 | ADM-06 | Stretch | Drag-and-drop reorder in the admin photo strip. ADM-04's buttons are the current control. |
 | ADM-07 | Stretch | The keeper can bulk-import a folder of photographs. |
 | ADM-08 | Stretch | More than one keeper can sign in. |
+| ADM-09 | Must | From the ledger, the keeper can name one existing miniature as the Honored Emissary, clear that choice, or replace it with another. Deleting the honored miniature clears the honor. |
 
 ## Theme and language
 

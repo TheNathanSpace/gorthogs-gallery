@@ -14,6 +14,7 @@ The library is deliberately Google Photos-like: a wide justified photo wall, a g
 - Lightbox with keyboard arrows, original-file download, and source link
 - Single keeper login (username from env; password chosen on first login and hashed in the vault)
 - Create / edit / delete entries and photographs
+- Honored Emissary: feature one miniature at the head of the library, take it down, or choose another
 - SQLite + files on disk, one Docker container, reverse-proxy ready
 
 Placeholder miniatures are seeded on first boot so the vault is not empty. They are labeled **PLACEHOLDER PHOTO** — replace them from the ledger. Set `SEED_DEMO=false` before the first start for an empty vault.
@@ -184,6 +185,7 @@ openssl rand -base64 48
 4. Sign in at `/login`. First time: `admin` / `changeme`, then a lasting vault key of at least 15 characters. `/admin` is the ledger. Change the key later at the bottom of the ledger. Visitors never need this.
 5. **New miniature** — name, painter, optional source name/URL, notes, photographs. Star a cover plate.
 6. Edit later to reorder, replace, or delete photographs.
+7. On the ledger, name one miniature the **Honored Emissary**. It appears at the head of the library. Choose **None** to take the honor down, then name another whenever you like. Deleting that miniature also clears the honor.
 
 ## Data layout
 
